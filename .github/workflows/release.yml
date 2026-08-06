@@ -1,0 +1,40 @@
+# Builds the standalone binaries install.sh expects and attaches them to a GitHub Release.
+# Without this, `curl … install.sh | bash` downloads nothing: the script fetches
+# releases/latest/download/anomalia-<platform>, which only exists once this has run.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun test
+
+      # Cross-compiles all four targets; names must stay `anomalia-<platform>` because
+      # install.sh and `anomalia update` both build that URL.
+      - run: bun run build:all
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum anomalia-* > SHA256SUMS.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/anomalia-*
+            dist/SHA256SUMS.txt
+          generate_release_notes: true

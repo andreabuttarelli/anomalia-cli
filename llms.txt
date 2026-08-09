@@ -122,6 +122,10 @@ bun run mcp:http     # http://localhost:8787/mcp
 
 Remote (Vercel / `mcp.anomalia.so`): `Authorization: Bearer <access_token>`. Full map: `docs/mcp.md`.
 
+## Observability (Sentry + Supabase)
+
+MCP HTTP logs/errors → Vercel stderr, optional Sentry (`SENTRY_DSN`), optional Supabase `mcp_logs` (`SUPABASE_SERVICE_ROLE_KEY`). See `docs/mcp.md`.
+
 ## Architecture
 
 The CLI is a thin HTTP client. All operations go through `/api/v1/*` endpoints. No direct database access. No secrets embedded.

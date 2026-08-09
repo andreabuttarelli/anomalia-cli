@@ -36,7 +36,7 @@ Requires [Bun](https://bun.sh).
 git clone https://github.com/andreabuttarelli/anomalia-cli.git
 cd anomalia-cli
 bun install
-bun run index.ts --help
+bun run cli.ts --help
 ```
 
 ## Usage
@@ -125,7 +125,7 @@ A thin HTTP client with no database access and no dependency on the Anomalia ser
 CLI  ──HTTPS──►  /api/v1/*  ──►  Anomalia
 ```
 
-Commands live in `commands/`, one file each, registered in `index.ts`. `lib/api.ts` is the only
+Commands live in `commands/`, one file each, registered in `cli.ts`. `lib/api.ts` is the only
 place that speaks HTTP. The MCP server in `mcp/` reuses that client and registers tools instead
 of printing tables.
 
@@ -133,7 +133,7 @@ of printing tables.
 
 ```bash
 bun install
-bun run index.ts --help   # run from source
+bun run cli.ts --help   # run from source
 bun run typecheck
 bun test
 bun run build             # binary for the current platform → dist/

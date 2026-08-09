@@ -1,5 +1,6 @@
 import { loadEnv } from '../lib/config.ts';
 import { runWithRequestAuth } from './context.ts';
+import { mcpLog } from './observability.ts';
 import { extractBearer, toAuthInfo, verifyBearerToken } from './verify-token.ts';
 
 const CORS_HEADERS: Record<string, string> = {
@@ -77,6 +78,14 @@ export async function handleMcpFetch(req: Request): Promise<Response> {
   // Remote/public: require Bearer. Local HTTP may also fall back to CLI session file inside tools.
   const requireBearer = process.env.MCP_REQUIRE_BEARER === '1' || process.env.VERCEL === '1';
   if (requireBearer && !verified) {
+    mcpLog({
+      level: 'warn',
+      event: 'auth.unauthorized',
+      message: 'Missing or invalid Bearer token',
+      method: req.method,
+      path: url.pathname,
+      statusCode: 401,
+    });
     return withCors(
       new Response(
         JSON.stringify({
@@ -121,9 +130,29 @@ export async function handleMcpFetch(req: Request): Promise<Response> {
     }
   };
 
-  const res = verified
-    ? await runWithRequestAuth(verified, run)
-    : await run();
-
-  return withCors(res);
+  try {
+    const res = verified
+      ? await runWithRequestAuth(verified, run)
+      : await run();
+    return withCors(res);
+  } catch (e) {
+    mcpLog({
+      level: 'error',
+      event: 'mcp.handler_error',
+      message: e instanceof Error ? e.message : String(e),
+      method: req.method,
+      path: url.pathname,
+      userId: verified?.user.id,
+      error: e,
+      statusCode: 500,
+    });
+    return json(
+      {
+        jsonrpc: '2.0',
+        error: { code: -32603, message: e instanceof Error ? e.message : 'Internal error' },
+        id: null,
+      },
+      500,
+    );
+  }
 }

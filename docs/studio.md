@@ -5,7 +5,7 @@ Lo Studio è la knowledge base del brand. Contiene tutte le informazioni che l'A
 ## Visualizzare lo Studio
 
 ```bash
-bun run index.ts studio my-brand
+bun run cli.ts studio my-brand
 ```
 
 Mostra:
@@ -23,7 +23,7 @@ Il brand kit contiene le informazioni fondamentali del brand.
 ### Aggiornare il brand kit
 
 ```bash
-bun run index.ts studio my-brand kit-update \
+bun run cli.ts studio my-brand kit-update \
   --about "Siamo un ristorante italiano specializzato in cucina fusion" \
   --category "Ristorante" \
   --audience "Giovani professionisti 25-35 anni, appassionati di food" \
@@ -35,16 +35,16 @@ Tutti i parametri sono opzionali — puoi aggiornare solo i campi che vuoi:
 
 ```bash
 # Aggiorna solo la lingua
-bun run index.ts studio my-brand kit-update --language it
+bun run cli.ts studio my-brand kit-update --language it
 
 # Aggiorna solo l'audience
-bun run index.ts studio my-brand kit-update --audience "Famiglie con bambini"
+bun run cli.ts studio my-brand kit-update --audience "Famiglie con bambini"
 ```
 
 ### Imposta colori brand
 
 ```bash
-bun run index.ts studio my-brand colors --colors "#7c5cff,#ffffff,#1a1a1a"
+bun run cli.ts studio my-brand colors --colors "#7c5cff,#ffffff,#1a1a1a"
 ```
 
 - Massimo 8 colori
@@ -58,7 +58,7 @@ Le persone possono essere reali o generate dall'AI.
 ### Aggiungi persona reale
 
 ```bash
-bun run index.ts studio my-brand people-add \
+bun run cli.ts studio my-brand people-add \
   --name "Marco Rossi" \
   --role "CEO" \
   --description "Fondatore dell'azienda, appassionato di innovazione"
@@ -67,7 +67,7 @@ bun run index.ts studio my-brand people-add \
 ### Genera persona AI
 
 ```bash
-bun run index.ts studio my-brand people-generate \
+bun run cli.ts studio my-brand people-generate \
   --name "Sofia" \
   --role "Influencer fitness" \
   --gender female \
@@ -86,7 +86,7 @@ Parametri per la generazione AI:
 ### Elimina persona
 
 ```bash
-bun run index.ts studio my-brand people-delete --id <uuid>
+bun run cli.ts studio my-brand people-delete --id <uuid>
 ```
 
 L'ID si ottiene dalla lista dello studio (`studio my-brand` mostra gli ID troncati).
@@ -98,7 +98,7 @@ La knowledge base contiene note, documenti e immagini che l'AI usa come contesto
 ### Aggiungi nota
 
 ```bash
-bun run index.ts studio my-brand add-note \
+bun run cli.ts studio my-brand add-note \
   --title "Tone of voice" \
   --text "Siamo amichevoli ma professionali. Evitiamo il linguaggio troppo formale. Usiamo emoji con moderazione."
 ```
@@ -106,7 +106,7 @@ bun run index.ts studio my-brand add-note \
 ### Aggiungi nota (senza titolo)
 
 ```bash
-bun run index.ts studio my-brand add-note --text "Il nostro prodotto principale è la pizza gourmet."
+bun run cli.ts studio my-brand add-note --text "Il nostro prodotto principale è la pizza gourmet."
 ```
 
 Il titolo default è "Note".
@@ -114,7 +114,7 @@ Il titolo default è "Note".
 ### Elimina documento
 
 ```bash
-bun run index.ts studio my-brand delete-doc --id <uuid>
+bun run cli.ts studio my-brand delete-doc --id <uuid>
 ```
 
 ## Competitors
@@ -122,7 +122,7 @@ bun run index.ts studio my-brand delete-doc --id <uuid>
 ### Aggiungi competitor manualmente
 
 ```bash
-bun run index.ts studio my-brand add-competitor \
+bun run cli.ts studio my-brand add-competitor \
   --name "RivalCo" \
   --website "rivalco.com" \
   --compKind direct \
@@ -136,7 +136,7 @@ bun run index.ts studio my-brand add-competitor \
 ### Ricerca competitor con AI
 
 ```bash
-bun run index.ts studio my-brand research
+bun run cli.ts studio my-brand research
 ```
 
 L'AI:
@@ -148,7 +148,7 @@ L'AI:
 ### Elimina competitor
 
 ```bash
-bun run index.ts studio my-brand delete-competitor --id <uuid>
+bun run cli.ts studio my-brand delete-competitor --id <uuid>
 ```
 
 ## Sync Storico Post
@@ -156,7 +156,7 @@ bun run index.ts studio my-brand delete-competitor --id <uuid>
 Sincronizza i post pubblicati dai social accounts collegati:
 
 ```bash
-bun run index.ts studio my-brand sync-history
+bun run cli.ts studio my-brand sync-history
 ```
 
 - Recupera i post da Instagram, TikTok, Facebook, etc.

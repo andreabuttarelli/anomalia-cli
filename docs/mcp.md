@@ -66,16 +66,20 @@ If the client cannot send OAuth Bearer yet, use [mcp-remote](https://www.npmjs.c
 
 ## Deploy on Vercel (`mcp.anomalia.so`)
 
-This repo includes `vercel.json` + `api/mcp.ts` (Streamable HTTP, stateless JSON responses).
+Vercel serves the Hono app in `app.ts` (Bun runtime) — **not** the CLI `index.ts`.
 
 1. Import the GitHub repo in Vercel (Root Directory = repo root).
-2. Set env if needed: `PUBLIC_APP_URL=https://anomalia.so`, optional `MCP_PUBLIC_URL=https://mcp.anomalia.so`.
-3. Attach domain `mcp.anomalia.so`.
-4. On Vercel, `VERCEL=1` forces Bearer auth (no session-file fallback).
+2. Framework: leave auto / Other. `vercel.json` sets `"bunVersion": "1.x"`.
+3. Build uses `vercel-build` (skips the CLI binary compile).
+4. Attach domain `mcp.anomalia.so`.
+5. Optional env: `PUBLIC_APP_URL=https://anomalia.so`, `MCP_PUBLIC_URL=https://mcp.anomalia.so`.
+6. On Vercel, `VERCEL=1` forces Bearer auth (no session-file fallback).
 
 ```bash
 npx vercel --prod
 ```
+
+Endpoints after deploy: `/mcp`, `/health`, `/.well-known/oauth-protected-resource`.
 
 ## Tool map
 
@@ -102,4 +106,4 @@ bun run typecheck
 npx @modelcontextprotocol/inspector bun run mcp/index.ts
 ```
 
-Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` (HTTP) → `mcp/server.ts` → `lib/api.ts` + auth.
+Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` + `app.ts` (HTTP / Vercel) → `mcp/server.ts` → `lib/api.ts` + auth.

@@ -10,11 +10,18 @@ export async function cmdAi(slug: string, opts: { message?: string; pipe?: boole
 
   // Read from stdin if piped
   if (!message && !process.stdin.isTTY) {
-    const chunks: Buffer[] = [];
+    const chunks: Uint8Array[] = [];
     for await (const chunk of process.stdin) {
-      chunks.push(chunk);
+      chunks.push(typeof chunk === 'string' ? new TextEncoder().encode(chunk) : new Uint8Array(chunk));
     }
-    message = Buffer.concat(chunks).toString('utf8').trim();
+    const total = chunks.reduce((n, c) => n + c.byteLength, 0);
+    const buf = new Uint8Array(total);
+    let offset = 0;
+    for (const c of chunks) {
+      buf.set(c, offset);
+      offset += c.byteLength;
+    }
+    message = new TextDecoder().decode(buf).trim();
   }
 
   if (!message) {

@@ -111,10 +111,21 @@ Note: `--id` accepts the short prefix printed in the tables.
 
 Run `anomalia login` once to authenticate via browser. Session is saved in `~/.config/anomalia/session.json`.
 
+## MCP
+
+MCP server in `mcp/` — stdio + Streamable HTTP. Same OAuth identity as the CLI (no static API tokens).
+
+```bash
+bun run mcp          # stdio
+bun run mcp:http     # http://localhost:8787/mcp
+```
+
+Remote (Vercel / `mcp.anomalia.so`): `Authorization: Bearer <access_token>`. Full map: `docs/mcp.md`.
+
 ## Architecture
 
 The CLI is a thin HTTP client. All operations go through `/api/v1/*` endpoints. No direct database access. No secrets embedded.
 
 ```
-CLI → HTTP → /api/v1/* → Supabase → Database
+CLI / MCP → HTTP → /api/v1/* → Supabase → Database
 ```

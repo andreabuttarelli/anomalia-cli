@@ -1,40 +1,48 @@
 # AI Coding Tools — Instruction File Compatibility
 
-Each AI coding tool reads instructions from a specific file. The Anomalia CLI skill can be installed for all of them.
+Each AI coding tool reads instructions from a specific file. The Anomalia skill
+(MCP + CLI) can be installed for all of them.
 
-| Tool | File | Posizione | Supportato |
-|------|------|-----------|------------|
+| Tool | File | Location | Supported |
+|------|------|----------|-----------|
+| **Cursor Agent Skills** | `SKILL.md` | `.cursor/skills/anomalia/` | ✅ |
 | **Claude Code** | `anomalia-cli.md` | `.claude/skills/` | ✅ |
-| **Cursor** | `.cursorrules` | Root progetto | ✅ |
+| **Cursor** | `.cursorrules` | Project root | ✅ |
 | **GitHub Copilot** | `copilot-instructions.md` | `.github/` | ✅ |
-| **Windsurf** (Codeium) | `.windsurfrules` | Root progetto | ✅ |
-| **Cline** (VS Code) | `.clinerules` | Root progetto | ✅ |
-| **Roo Code** | `.roomodes` | Root progetto | ✅ |
-| **Aider** | `.aider.conf.yml` | Root progetto | ✅ |
-| **OpenAI Codex** | `AGENTS.md` | Root progetto | ✅ |
-| **Mimo Code** | `AGENTS.md` | Root progetto | ✅ |
-| **Kimi Code** | `AGENTS.md` | Root progetto | ✅ |
-| **Antigravity CLI** | `AGENTS.md` | Root progetto | ✅ |
-| **Qualsiasi AI** | `llms.txt` | Root progetto | ✅ |
+| **Windsurf** (Codeium) | `.windsurfrules` | Project root | ✅ |
+| **Cline** (VS Code) | `.clinerules` | Project root | ✅ |
+| **Roo Code** | `.roomodes` | Project root | ✅ |
+| **Aider** | `.aider.conf.yml` | Project root | ✅ |
+| **OpenAI Codex** | `AGENTS.md` | Project root | ✅ |
+| **Mimo / Kimi / Antigravity** | `AGENTS.md` | Project root | ✅ |
+| **Any AI** | `llms.txt` | Project root | ✅ |
+
+## Repo sources
+
+| File | Purpose |
+|------|---------|
+| [`skills/anomalia/SKILL.md`](./anomalia/SKILL.md) | Cursor Agent Skill (YAML frontmatter) — MCP-first |
+| [`skills/anomalia-cli.md`](./anomalia-cli.md) | Flat skill for Claude / installer / AGENTS.md |
+| [`llms.txt`](../llms.txt) | Full CLI command dump |
+| [`docs/mcp.md`](../docs/mcp.md) | MCP transports + OAuth |
 
 ## Standards
 
-- **AGENTS.md** — Proposto da OpenAI Codex come standard universale. Supportato da molti tool.
-- **llms.txt** — Standard per siti web e progetti che vogliono essere leggibili dalle AI.
-- **.cursorrules** — Il più vecchio e diffuso (Cursor).
-- **.claude/skills/** — Formato Claude Code (file separati per skill).
+- **Agent Skills** (`SKILL.md`) — Cursor progressive disclosure skills
+- **AGENTS.md** — universal agent instructions
+- **llms.txt** — machine-readable project docs
+- **.claude/skills/** — Claude Code skills
 
-## Installazione
+## Install
 
 ```bash
-# Tutti i tool, progetto corrente
-curl -sSL https://anomalia.so/install-skill.sh | bash -s -- --project
+# All tools, current project (includes .cursor/skills/anomalia)
+bash scripts/install-skill.sh --project
 
-# Solo Claude Code, globale
-curl -sSL https://anomalia.so/install-skill.sh | bash -s -- --global
+# Global: Claude + Cursor
+bash scripts/install-skill.sh --global
 
-# Manuale
-cp cli/skills/anomalia-cli.md .claude/skills/anomalia-cli.md
-cp cli/skills/anomalia-cli.md .cursorrules
-cp cli/skills/anomalia-cli.md AGENTS.md
+# Manual Cursor
+mkdir -p .cursor/skills/anomalia
+cp skills/anomalia/SKILL.md .cursor/skills/anomalia/SKILL.md
 ```

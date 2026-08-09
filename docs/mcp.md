@@ -122,6 +122,17 @@ Table `mcp_logs`: level, event, message, path, tool, user_id, status, duration, 
 Post and article `id` arguments accept the short unambiguous prefixes printed by list tools
 (same rule as the CLI).
 
+## Agent skill
+
+For coding agents (Cursor / Claude / …), install the MCP+CLI skill:
+
+```bash
+bash scripts/install-skill.sh --project
+```
+
+Sources: [`skills/anomalia/SKILL.md`](../skills/anomalia/SKILL.md) (Cursor Agent Skill) and
+[`skills/anomalia-cli.md`](../skills/anomalia-cli.md) (flat / multi-tool installer).
+
 ## Development
 
 ```bash

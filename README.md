@@ -1,6 +1,10 @@
-# Anomalia CLI · MCP · Skill
+# Anomalia CLI — Social Media AI Automation CLI, MCP Server & Agent Skill
 
-Client tooling for [Anomalia](https://anomalia.so) — the social media AI autopilot.
+**Automate your social media from the terminal.** [Anomalia](https://anomalia.so) is the social
+media AI autopilot that plans, writes, designs and publishes posts, blog articles and SEO/GEO
+audits on autopilot. This repository is its command-line client, [MCP server](docs/mcp.md)
+(Model Context Protocol — `stdio` + HTTP) and agent skill: everything you need to run social
+media automation, content generation and approval workflows from a terminal or an AI agent.
 
 This repository ships **three ways** to drive the same product (same OAuth, same API, **no static tokens**):
 
@@ -13,8 +17,9 @@ This repository ships **three ways** to drive the same product (same OAuth, same
 > **You need an Anomalia account.** This is a client, not a standalone tool: every call talks to
 > the Anomalia API over HTTPS. Without an account there is nothing to drive.
 
-Plan and approve posts, edit a carousel slide by slide, turn a post into a video, run SEO and GEO
-audits, manage the blog — from the terminal **or** from an AI agent.
+With the Anomalia CLI you can automate social media posting, approve AI-generated content in one
+tap, edit a carousel slide by slide, turn a post into a video, run SEO and GEO audits, and manage
+your blog — from the terminal **or** from an AI agent like Cursor or Claude.
 
 ```text
 ┌─────────────┐   ┌─────────────┐   ┌──────────────────┐

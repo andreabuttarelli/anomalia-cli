@@ -36,42 +36,66 @@ read_skill_content() {
   local content
   content=$(curl -sSL "$url" 2>/dev/null) || true
 
-  if [[ -z "$content" ]]; then
-    # Embedded fallback
+  if [[ -z "$content" ]] || ! echo "$content" | grep -q "Anomalia Skill"; then
+    # Embedded fallback (MCP + CLI)
     read -r -d '' content << 'SKILL_EOF' || true
-# Anomalia CLI
+# Anomalia Skill (MCP + CLI)
 
-CLI for managing Anomalia social media AI autopilot brands.
+Prefer Anomalia MCP tools when connected; otherwise use the `anomalia` CLI.
+OAuth only — session at ~/.config/anomalia/session.json. No static API tokens.
 
-## Quick Reference
+## MCP (preferred)
+
+Stdio: bun run /path/to/anomalia-cli/mcp/stdio.ts
+HTTP: https://mcp.anomalia.so/mcp (Bearer required remotely)
+Start with list_brands / whoami. Use specific tools; chat for open-ended work.
+
+## CLI quick reference
 
 ```bash
-anomalia brands                                    # List brands
-anomalia dashboard <slug>                          # Brand overview
-anomalia content <slug> [--status pending_user]    # List/filter posts
-anomalia approve <slug> --all                      # Approve all pending
-anomalia post <slug> <id> edit --caption "..."     # Edit post
-anomalia plan <slug>                               # View editorial plan
-anomalia plan <slug> propose                       # Generate plan
-anomalia weekly-plan <slug> plan --week 0          # Generate seeds
-anomalia weekly-plan <slug> produce --week 0       # Produce posts
-anomalia studio <slug>                             # View knowledge base
-anomalia studio <slug> add-note --text "..."       # Add knowledge
-anomalia studio <slug> research                    # AI competitor research
-anomalia ai <slug> --message "..."                 # AI chat (full access)
-echo "..." | anomalia ai <slug>                    # Pipe mode
+anomalia login
+anomalia brands
+anomalia dashboard <slug>
+anomalia content <slug> --status pending_user
+anomalia approve <slug> --all
+anomalia post <slug> <id> edit --caption "..."
+anomalia plan <slug> propose
+anomalia weekly-plan <slug> plan --week 0
+anomalia weekly-plan <slug> produce --week 0
+anomalia studio <slug> add-note --text "..."
+anomalia ai <slug> --message "..." --pipe
 ```
 
 ## Tips
 
-- Use `anomalia ai <slug> --message "..."` for complex operations
-- Use `--pipe` for machine-readable output
-- Post IDs: `anomalia content <slug>`
-- Run `anomalia` once to authenticate via browser
+- Prefer MCP tools over shell when the server is connected
+- Use --pipe for machine-readable AI output
+- Post IDs: short prefixes from list tables (never guess if ambiguous)
 SKILL_EOF
   fi
 
   echo "$content"
+}
+
+install_cursor_skill() {
+  local dest_dir="$1"
+  local label="$2"
+  local url="https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/skills/anomalia/SKILL.md"
+  mkdir -p "$dest_dir"
+  if curl -sSL "$url" -o "$dest_dir/SKILL.md" 2>/dev/null && grep -q "name: anomalia" "$dest_dir/SKILL.md" 2>/dev/null; then
+    success "$label → $dest_dir/SKILL.md"
+  else
+    # Fallback: copy flat skill as SKILL.md body with minimal frontmatter
+    {
+      echo '---'
+      echo 'name: anomalia'
+      echo 'description: Operate Anomalia via MCP tools or the anomalia CLI.'
+      echo '---'
+      echo ''
+      echo "$SKILL_CONTENT"
+    } > "$dest_dir/SKILL.md"
+    success "$label (fallback) → $dest_dir/SKILL.md"
+  fi
 }
 
 # ── Parse args ─────────────────────────────────────────────────────────
@@ -109,7 +133,7 @@ install_file() {
   mkdir -p "$dir"
 
   # If file exists and already has our content, skip
-  if [[ -f "$target" ]] && grep -q "Anomalia CLI" "$target" 2>/dev/null; then
+  if [[ -f "$target" ]] && grep -qE "Anomalia (CLI|Skill)" "$target" 2>/dev/null; then
     info "$label già configurato"
     return
   fi
@@ -161,16 +185,19 @@ echo ""
 # ── Install ────────────────────────────────────────────────────────────
 
 if [[ "$MODE" == "global" ]]; then
-  # Global: only Claude Code
+  # Global: Claude Code + Cursor Agent Skills
   install_file "$HOME/.claude/skills/anomalia-cli.md" "Claude Code (globale)"
+  install_cursor_skill "$HOME/.cursor/skills/anomalia" "Cursor Agent Skill (globale)"
 else
   # Project: all tools
 
   # Claude Code (uses CLAUDE.md which is auto-read)
   install_file "CLAUDE.md" "Claude Code (CLAUDE.md)"
+  install_file ".claude/skills/anomalia-cli.md" "Claude Code skill file"
 
-  # Cursor
-  install_file ".cursorrules" "Cursor"
+  # Cursor (legacy rules + Agent Skills)
+  install_file ".cursorrules" "Cursor (.cursorrules)"
+  install_cursor_skill ".cursor/skills/anomalia" "Cursor Agent Skill"
 
   # GitHub Copilot
   install_file ".github/copilot-instructions.md" "GitHub Copilot"
@@ -186,9 +213,9 @@ else
 
   # Aider
   if [[ -f ".aider.conf.yml" ]]; then
-    if ! grep -q "Anomalia CLI" ".aider.conf.yml" 2>/dev/null; then
+    if ! grep -qE "Anomalia (CLI|Skill)" ".aider.conf.yml" 2>/dev/null; then
       echo "" >> ".aider.conf.yml"
-      echo "# Anomalia CLI" >> ".aider.conf.yml"
+      echo "# Anomalia Skill" >> ".aider.conf.yml"
       echo "$SKILL_CONTENT" >> ".aider.conf.yml"
       success "Aider aggiornato → .aider.conf.yml"
     else
@@ -197,7 +224,7 @@ else
   else
     # Aider uses YAML, create a proper file
     cat > ".aider.conf.yml" << AIDER_EOF
-# Anomalia CLI instructions
+# Anomalia Skill instructions
 # See: https://anomalia.so
 AIDER_EOF
     echo "$SKILL_CONTENT" >> ".aider.conf.yml"
@@ -225,6 +252,7 @@ echo ""
 if [[ "$MODE" == "project" ]]; then
   echo "  File installati:"
   [[ -f ".claude/skills/anomalia-cli.md" ]] && echo "    • .claude/skills/anomalia-cli.md  (Claude Code)"
+  [[ -f ".cursor/skills/anomalia/SKILL.md" ]] && echo "    • .cursor/skills/anomalia/SKILL.md  (Cursor Agent Skill)"
   [[ -f ".cursorrules" ]] && echo "    • .cursorrules                (Cursor)"
   [[ -f ".github/copilot-instructions.md" ]] && echo "    • .github/copilot-instructions.md  (Copilot)"
   [[ -f ".windsurfrules" ]] && echo "    • .windsurfrules              (Windsurf)"
@@ -237,5 +265,8 @@ fi
 
 echo ""
 echo "  Ora puoi dire alla tua AI:"
-  echo "  ${BOLD}\"Usa la CLI Anomalia per mostrarmi i brand\"${NC}"
+echo "  ${BOLD}\"Usa Anomalia MCP (o la CLI) per elencare i brand\"${NC}"
+echo ""
+echo "  Cursor Agent Skill: skills/anomalia/SKILL.md"
+echo "  Docs MCP: https://github.com/andreabuttarelli/anomalia-cli/blob/main/docs/mcp.md"
 echo ""

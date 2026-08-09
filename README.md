@@ -111,7 +111,10 @@ Zero config by default. It points at `https://anomalia.so`, falling back to
 
 | Variable | Purpose |
 |----------|---------|
-| `PUBLIC_APP_URL` | Point the CLI at a different Anomalia instance |
+| `PUBLIC_APP_URL` | Point the CLI/MCP at a different Anomalia instance |
+| `SENTRY_DSN` | (MCP HTTP / Vercel) Send errors to Sentry |
+| `SUPABASE_SERVICE_ROLE_KEY` | (MCP HTTP / Vercel) Insert rows into `mcp_logs` |
+| `MCP_PUBLIC_URL` | Public MCP base URL for OAuth metadata |
 
 The session lives in `~/.config/anomalia/session.json` and refreshes itself; `anomalia logout`
 removes it. No secrets are embedded in this repo or in the binary — the CLI holds only your own

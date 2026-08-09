@@ -44,7 +44,7 @@ bun run mcp:http     # Streamable HTTP on :8787
   "mcpServers": {
     "anomalia": {
       "command": "bun",
-      "args": ["run", "/ABS/PATH/to/anomalia-cli/mcp/index.ts"]
+      "args": ["run", "/ABS/PATH/to/anomalia-cli/mcp/stdio.ts"]
     }
   }
 }
@@ -129,7 +129,7 @@ bun run mcp              # stdio
 bun run mcp:http         # HTTP
 bun test                 # includes mcp helpers
 bun run typecheck
-npx @modelcontextprotocol/inspector bun run mcp/index.ts
+npx @modelcontextprotocol/inspector bun run mcp/stdio.ts
 ```
 
-Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` + `api/*.cjs` (HTTP / Vercel, built by `vercel-build`) → `mcp/http-router.ts` → `mcp/http-app.ts` → `mcp/server.ts` → `lib/api.ts` + auth. Observability: `mcp/observability.ts`.
+Architecture: `mcp/stdio.ts` (stdio) / `mcp/http.ts` + `mcp/api/*.js` (HTTP / Vercel) → `mcp/http-router.ts` → `mcp/http-app.ts` → `mcp/server.ts` → `lib/api.ts` + auth. Observability: `mcp/observability.ts`.

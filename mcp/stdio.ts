@@ -10,7 +10,7 @@
  *   "mcpServers": {
  *     "anomalia": {
  *       "command": "bun",
- *       "args": ["run", "/absolute/path/to/anomalia-cli/mcp/index.ts"]
+ *       "args": ["run", "/absolute/path/to/anomalia-cli/mcp/stdio.ts"]
  *     }
  *   }
  * }

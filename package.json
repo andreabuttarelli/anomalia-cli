@@ -15,11 +15,11 @@
   "type": "module",
   "bin": {
     "anomalia": "./cli.ts",
-    "anomalia-mcp": "./mcp/index.ts"
+    "anomalia-mcp": "./mcp/stdio.ts"
   },
   "scripts": {
     "dev": "bun run cli.ts",
-    "mcp": "bun run mcp/index.ts",
+    "mcp": "bun run mcp/stdio.ts",
     "mcp:http": "bun run mcp/http.ts",
     "build": "bun run scripts/build.ts",
     "build:all": "bun run scripts/build.ts --all",

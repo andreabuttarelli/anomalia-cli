@@ -9,7 +9,42 @@
  */
 
 const LOCAL_URL = 'http://localhost:5173';
-const PRODUCTION_URL = 'https://anomalia.so';
+
+/**
+ * Canonical production origin — **www, not the apex**.
+ *
+ * `https://anomalia.so` 308-redirects to `https://www.anomalia.so`, which is a *cross-origin*
+ * redirect, and fetch drops the `Authorization` header across origins. Every API call made
+ * against the apex therefore arrives unauthenticated and the server answers
+ * `401 {"error":"Missing or invalid Authorization header"}` — which reads like a broken login
+ * but is really a redirect eating the token. Point at the host that answers directly.
+ *
+ * Single source of truth on purpose: this literal used to be copy-pasted into api.ts, auth.ts,
+ * health.ts and the MCP HTTP layer, so the bug had to be fixed in six places or none.
+ */
+export const PRODUCTION_URL = 'https://www.anomalia.so';
+
+/** Resolved API/base origin: explicit override, else auto-detected dev server, else production. */
+export function appUrl(): string {
+  return (process.env.PUBLIC_APP_URL || PRODUCTION_URL).replace(/\/$/, '');
+}
+
+const isLocal = (url: string) => /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])/.test(url);
+
+/**
+ * OAuth authorization server identifier advertised to MCP clients — deliberately the **apex**,
+ * unlike PRODUCTION_URL.
+ *
+ * RFC 8414 wants the `issuer` in /.well-known/oauth-authorization-server byte-identical to the
+ * identifier the client built the discovery URL from, and 021-app answers with the apex
+ * (`issuerFor()` in src/lib/server/oauth.ts). Move one end to www without the other and strict
+ * clients reject the metadata. Keep this decoupled from appUrl() so nobody "unifies" the two by
+ * accident: a dev PUBLIC_APP_URL still wins, so local OAuth points at the dev server.
+ */
+export function authServerUrl(): string {
+  const app = appUrl();
+  return isLocal(app) ? app : 'https://anomalia.so';
+}
 
 // Public Supabase keys (safe to embed — anon key, no secrets)
 process.env.PUBLIC_SUPABASE_URL ??= 'https://kszazivzwievqixcnanp.supabase.co';

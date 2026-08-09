@@ -3,10 +3,13 @@
  * No Supabase, no DB access, no secrets — just HTTP calls to the Anomalia API.
  */
 
-const BASE = (process.env.PUBLIC_APP_URL ?? 'https://anomalia.so').replace(/\/$/, '');
+import { appUrl } from './config.ts';
 
 async function request<T>(path: string, token: string, opts?: RequestInit): Promise<T> {
-  const url = `${BASE}${path}`;
+  // Resolved per call, not at import time: loadEnv() sets PUBLIC_APP_URL after the module
+  // graph is already loaded, so a module-level constant would freeze the production default
+  // and ignore the local dev server.
+  const url = `${appUrl()}${path}`;
   const res = await fetch(url, {
     ...opts,
     headers: {
@@ -469,7 +472,7 @@ export const api = {
   // ── Chat ──────────────────────────────────────────────────────────────
 
   chat: async (t: string, slug: string, message: string): Promise<string> => {
-    const res = await fetch(`${BASE}/app/${slug}/chat`, {
+    const res = await fetch(`${appUrl()}/app/${slug}/chat`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: [{ role: 'user', content: message }] }),

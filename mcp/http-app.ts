@@ -1,4 +1,4 @@
-import { loadEnv } from '../lib/config.ts';
+import { authServerUrl, loadEnv } from '../lib/config.ts';
 import { runWithRequestAuth } from './context.ts';
 import { mcpLog } from './observability.ts';
 import { extractBearer, toAuthInfo, verifyBearerToken } from './verify-token.ts';
@@ -34,8 +34,7 @@ function mcpResourceUrl(req: Request): string {
 }
 
 function authServers(): string[] {
-  const app = (process.env.PUBLIC_APP_URL ?? 'https://anomalia.so').replace(/\/$/, '');
-  return [app];
+  return [authServerUrl()];
 }
 
 /**

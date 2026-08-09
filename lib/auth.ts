@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
+import { appUrl as resolveAppUrl } from './config.ts';
 
 const CONFIG_DIR = join(homedir(), '.config', 'anomalia');
 const SESSION_FILE = join(CONFIG_DIR, 'session.json');
@@ -87,7 +88,7 @@ export async function startBrowserLogin(
 ): Promise<StoredSession> {
   const port = 54320 + Math.floor(Math.random() * 60);
   const state = crypto.randomUUID();
-  const appUrl = (process.env.PUBLIC_APP_URL || 'https://anomalia.so').replace(/\/$/, '');
+  const appUrl = resolveAppUrl();
   const appOrigin = new URL(appUrl).origin;
 
   let resolveSession!: (s: StoredSession) => void;

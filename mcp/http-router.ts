@@ -1,4 +1,5 @@
 import { handleMcpFetch } from '../mcp/http-app.ts';
+import { authServerUrl } from '../lib/config.ts';
 
 const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
@@ -39,7 +40,7 @@ export async function routeMcpHttp(req: Request): Promise<Response> {
     url.pathname === '/.well-known/oauth-protected-resource' ||
     url.pathname === '/api/oauth-protected-resource'
   ) {
-    const appUrl = (process.env.PUBLIC_APP_URL ?? 'https://anomalia.so').replace(/\/$/, '');
+    const appUrl = authServerUrl();
     const publicUrl = (process.env.MCP_PUBLIC_URL ?? url.origin).replace(/\/$/, '');
     return json({
       resource: `${publicUrl}/mcp`,

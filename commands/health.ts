@@ -1,5 +1,6 @@
 import chalk from 'chalk';
 import { section, c, info } from '../lib/display.ts';
+import { appUrl } from '../lib/config.ts';
 
 interface ServiceCheck {
   name: string;
@@ -15,7 +16,7 @@ interface StatusResponse {
 }
 
 export async function cmdHealth() {
-  const base = (process.env.PUBLIC_APP_URL ?? 'https://anomalia.so').replace(/\/$/, '');
+  const base = appUrl();
   const url = `${base}/api/status`;
 
   try {

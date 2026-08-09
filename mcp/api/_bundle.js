@@ -49,6 +49,49 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+// lib/config.ts
+function appUrl() {
+  return (process.env.PUBLIC_APP_URL || PRODUCTION_URL).replace(/\/$/, "");
+}
+function authServerUrl() {
+  const app = appUrl();
+  return isLocal(app) ? app : "https://anomalia.so";
+}
+async function loadEnv() {
+  if (resolved) return;
+  if (process.env.VERCEL || process.env.MCP_REQUIRE_BEARER === "1") {
+    process.env.PUBLIC_APP_URL ??= PRODUCTION_URL;
+    resolved = true;
+    return;
+  }
+  if (process.env.PUBLIC_APP_URL && process.env.PUBLIC_APP_URL !== PRODUCTION_URL) {
+    resolved = true;
+    return;
+  }
+  try {
+    await fetch(`${LOCAL_URL}/api/v1/brands`, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(1e3)
+    });
+    process.env.PUBLIC_APP_URL = LOCAL_URL;
+  } catch {
+    process.env.PUBLIC_APP_URL = PRODUCTION_URL;
+  }
+  resolved = true;
+}
+var LOCAL_URL, PRODUCTION_URL, isLocal, resolved;
+var init_config = __esm({
+  "lib/config.ts"() {
+    "use strict";
+    LOCAL_URL = "http://localhost:5173";
+    PRODUCTION_URL = "https://www.anomalia.so";
+    isLocal = (url2) => /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])/.test(url2);
+    process.env.PUBLIC_SUPABASE_URL ??= "https://kszazivzwievqixcnanp.supabase.co";
+    process.env.PUBLIC_SUPABASE_ANON_KEY ??= "sb_publishable_gXzHd-4PxJ8UJ-US7mO15Q_bgiGGHvB";
+    resolved = false;
+  }
+});
+
 // mcp/context.ts
 import { AsyncLocalStorage } from "node:async_hooks";
 function getRequestAuth() {
@@ -65024,7 +65067,7 @@ var init_mcp = __esm({
 
 // lib/api.ts
 async function request2(path2, token, opts) {
-  const url2 = `${BASE}${path2}`;
+  const url2 = `${appUrl()}${path2}`;
   const res = await fetch(url2, {
     ...opts,
     headers: {
@@ -65048,11 +65091,11 @@ function post2(path2, token, body) {
     body: body ? JSON.stringify(body) : void 0
   });
 }
-var BASE, api;
+var api;
 var init_api2 = __esm({
   "lib/api.ts"() {
     "use strict";
-    BASE = (process.env.PUBLIC_APP_URL ?? "https://anomalia.so").replace(/\/$/, "");
+    init_config();
     api = {
       // Brands
       listBrands: (t) => get2("/api/v1/brands", t),
@@ -65145,7 +65188,7 @@ var init_api2 = __esm({
       adsAction: (t, slug5, body) => post2(`/api/v1/brands/${slug5}/ads`, t, body),
       // ── Chat ──────────────────────────────────────────────────────────────
       chat: async (t, slug5, message) => {
-        const res = await fetch(`${BASE}/app/${slug5}/chat`, {
+        const res = await fetch(`${appUrl()}/app/${slug5}/chat`, {
           method: "POST",
           headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json" },
           body: JSON.stringify({ messages: [{ role: "user", content: message }] })
@@ -65806,8 +65849,8 @@ function anonClient2() {
 async function startBrowserLogin(onStatus) {
   const port = 54320 + Math.floor(Math.random() * 60);
   const state = crypto.randomUUID();
-  const appUrl = (process.env.PUBLIC_APP_URL || "https://anomalia.so").replace(/\/$/, "");
-  const appOrigin = new URL(appUrl).origin;
+  const appUrl2 = appUrl();
+  const appOrigin = new URL(appUrl2).origin;
   let resolveSession;
   let rejectSession;
   const settled = new Promise((res, rej) => {
@@ -65855,7 +65898,7 @@ async function startBrowserLogin(onStatus) {
       return new Response("Not found", { status: 404 });
     }
   });
-  const loginUrl = `${appUrl}/login?cli_port=${port}&cli_state=${state}`;
+  const loginUrl = `${appUrl2}/login?cli_port=${port}&cli_state=${state}`;
   onStatus("Apertura browser per il login\u2026");
   const { default: open2 } = await Promise.resolve().then(() => (init_open(), open_exports));
   await open2(loginUrl);
@@ -65875,6 +65918,7 @@ var init_auth = __esm({
   "lib/auth.ts"() {
     "use strict";
     init_dist4();
+    init_config();
     CONFIG_DIR = join4(homedir(), ".config", "anomalia");
     SESSION_FILE = join4(CONFIG_DIR, "session.json");
   }
@@ -67059,36 +67103,8 @@ var init_server3 = __esm({
   }
 });
 
-// lib/config.ts
-var LOCAL_URL = "http://localhost:5173";
-var PRODUCTION_URL = "https://anomalia.so";
-process.env.PUBLIC_SUPABASE_URL ??= "https://kszazivzwievqixcnanp.supabase.co";
-process.env.PUBLIC_SUPABASE_ANON_KEY ??= "sb_publishable_gXzHd-4PxJ8UJ-US7mO15Q_bgiGGHvB";
-var resolved = false;
-async function loadEnv() {
-  if (resolved) return;
-  if (process.env.VERCEL || process.env.MCP_REQUIRE_BEARER === "1") {
-    process.env.PUBLIC_APP_URL ??= PRODUCTION_URL;
-    resolved = true;
-    return;
-  }
-  if (process.env.PUBLIC_APP_URL && process.env.PUBLIC_APP_URL !== PRODUCTION_URL) {
-    resolved = true;
-    return;
-  }
-  try {
-    await fetch(`${LOCAL_URL}/api/v1/brands`, {
-      method: "HEAD",
-      signal: AbortSignal.timeout(1e3)
-    });
-    process.env.PUBLIC_APP_URL = LOCAL_URL;
-  } catch {
-    process.env.PUBLIC_APP_URL = PRODUCTION_URL;
-  }
-  resolved = true;
-}
-
 // mcp/http-app.ts
+init_config();
 init_context();
 
 // node_modules/@sentry/core/build/esm/debug-build.js
@@ -94036,8 +94052,7 @@ function mcpResourceUrl(req) {
   return `${url2.origin}/mcp`;
 }
 function authServers() {
-  const app = (process.env.PUBLIC_APP_URL ?? "https://anomalia.so").replace(/\/$/, "");
-  return [app];
+  return [authServerUrl()];
 }
 async function handleMcpFetch(req) {
   await loadEnv();
@@ -94142,6 +94157,7 @@ async function handleMcpFetch(req) {
 }
 
 // mcp/http-router.ts
+init_config();
 var CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -94168,11 +94184,11 @@ async function routeMcpHttp(req) {
     });
   }
   if (url2.pathname === "/.well-known/oauth-protected-resource" || url2.pathname === "/api/oauth-protected-resource") {
-    const appUrl = (process.env.PUBLIC_APP_URL ?? "https://anomalia.so").replace(/\/$/, "");
+    const appUrl2 = authServerUrl();
     const publicUrl = (process.env.MCP_PUBLIC_URL ?? url2.origin).replace(/\/$/, "");
     return json3({
       resource: `${publicUrl}/mcp`,
-      authorization_servers: [appUrl],
+      authorization_servers: [appUrl2],
       scopes_supported: ["anomalia"],
       bearer_methods_supported: ["header"]
     });

@@ -66,20 +66,24 @@ If the client cannot send OAuth Bearer yet, use [mcp-remote](https://www.npmjs.c
 
 ## Deploy on Vercel (`mcp.anomalia.so`)
 
-Vercel deploys **Node serverless** functions under `api/` (rewrites `/mcp` → `/api/mcp`). The CLI entry is `cli.ts` (not `index.ts`) so Vercel does not treat the repo as a Bun backend app.
+Vercel deploys **Node serverless** `api/*.js` files (`framework: null` in `vercel.json`).
+
+- `api/health.js` — zero-dependency ESM so `/health` stays up even if the MCP bundle fails
+- `vercel-build` runs `node scripts/build-vercel.mjs` (esbuild) to emit `api/mcp.js` and
+  `api/oauth-protected-resource.js` (Bun-style `.ts` imports are never left for `@vercel/node`)
 
 1. Import the GitHub repo in Vercel (Root Directory = repo root).
-2. Framework preset: **Other**.
-3. Build uses `vercel-build` (skips the CLI binary compile).
-4. Attach domain `mcp.anomalia.so` (DNS CNAME/A as Vercel instructs).
-5. Set env vars (see Observability below).
-6. On Vercel, `VERCEL=1` forces Bearer auth (no session-file fallback).
+2. Framework preset: **Other** (already pinned via `vercel.json`).
+3. Attach domain `mcp.anomalia.so`.
+4. Set env vars (Observability below).
+5. Redeploy after each merge to `main`.
 
 ```bash
+npm run vercel-build   # or: bun run vercel-build
 npx vercel --prod
 ```
 
-Endpoints after deploy: `/mcp`, `/health`, `/.well-known/oauth-protected-resource`.
+Endpoints: `/mcp`, `/health`, `/.well-known/oauth-protected-resource`.
 
 ## Observability (Sentry + Supabase)
 
@@ -126,4 +130,4 @@ bun run typecheck
 npx @modelcontextprotocol/inspector bun run mcp/index.ts
 ```
 
-Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` + `api/*` (HTTP / Vercel) → `mcp/http-router.ts` → `mcp/http-app.ts` → `mcp/server.ts` → `lib/api.ts` + auth. Observability: `mcp/observability.ts`.
+Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` + `api/*.cjs` (HTTP / Vercel, built by `vercel-build`) → `mcp/http-router.ts` → `mcp/http-app.ts` → `mcp/server.ts` → `lib/api.ts` + auth. Observability: `mcp/observability.ts`.

@@ -70,6 +70,30 @@ bash scripts/install-skill.sh
 `anomalia ai <brand> --message "..."` pipes a natural-language instruction to the same assistant
 that runs in the web app; add `--pipe` for raw, unformatted output.
 
+### MCP server
+
+There is also a stdio [MCP](https://modelcontextprotocol.io) server in `mcp/` — same API client,
+same browser OAuth session as the CLI (**no static tokens**). Docs: [`docs/mcp.md`](docs/mcp.md).
+
+```bash
+bun run mcp
+```
+
+Cursor example (`mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "anomalia": {
+      "command": "bun",
+      "args": ["run", "/ABS/PATH/to/anomalia-cli/mcp/index.ts"]
+    }
+  }
+}
+```
+
+Call the `login` tool (or run `anomalia login` once) before other tools.
+
 ## Configuration
 
 Zero config by default. It points at `https://anomalia.so`, falling back to
@@ -92,7 +116,8 @@ CLI  ──HTTPS──►  /api/v1/*  ──►  Anomalia
 ```
 
 Commands live in `commands/`, one file each, registered in `index.ts`. `lib/api.ts` is the only
-place that speaks HTTP.
+place that speaks HTTP. The MCP server in `mcp/` reuses that client and registers tools instead
+of printing tables.
 
 ## Development
 

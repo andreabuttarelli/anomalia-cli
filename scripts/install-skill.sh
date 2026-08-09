@@ -80,12 +80,35 @@ SKILL_EOF
 install_cursor_skill() {
   local dest_dir="$1"
   local label="$2"
-  local url="https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/skills/anomalia/SKILL.md"
-  mkdir -p "$dest_dir"
-  if curl -sSL "$url" -o "$dest_dir/SKILL.md" 2>/dev/null && grep -q "name: anomalia" "$dest_dir/SKILL.md" 2>/dev/null; then
+  local base="https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/skills/anomalia"
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  local local_skill=""
+
+  # Prefer local package when installer runs from this repo
+  if [[ -f "$script_dir/../skills/anomalia/SKILL.md" ]]; then
+    local_skill="$script_dir/../skills/anomalia"
+  elif [[ -f "./skills/anomalia/SKILL.md" ]]; then
+    local_skill="./skills/anomalia"
+  fi
+
+  mkdir -p "$dest_dir/references"
+
+  if [[ -n "$local_skill" ]]; then
+    cp "$local_skill/SKILL.md" "$dest_dir/SKILL.md"
+    if [[ -d "$local_skill/references" ]]; then
+      cp -R "$local_skill/references/." "$dest_dir/references/"
+    fi
+    success "$label → $dest_dir/SKILL.md"
+    return
+  fi
+
+  if curl -sSL "$base/SKILL.md" -o "$dest_dir/SKILL.md" 2>/dev/null && grep -q "name: anomalia" "$dest_dir/SKILL.md" 2>/dev/null; then
+    for f in mcp.md tools.md cli.md; do
+      curl -sSL "$base/references/$f" -o "$dest_dir/references/$f" 2>/dev/null || true
+    done
     success "$label → $dest_dir/SKILL.md"
   else
-    # Fallback: copy flat skill as SKILL.md body with minimal frontmatter
     {
       echo '---'
       echo 'name: anomalia'
@@ -109,8 +132,11 @@ while [[ $# -gt 0 ]]; do
       echo "Usage: curl -sSL https://anomalia.so/install-skill.sh | bash"
       echo ""
       echo "Options:"
-      echo "  --global    Install globally (~/.claude/skills/)"
+      echo "  --global    Install globally (~/.claude/skills/ + ~/.cursor/skills/)"
       echo "  --project   Install in current project (all tools)"
+      echo ""
+      echo "Publishable skill (skills.sh / npx skills):"
+      echo "  npx skills add andreabuttarelli/anomalia-cli --skill anomalia"
       echo ""
       echo "Supported tools:"
       echo "  Claude Code, Cursor, GitHub Copilot, Windsurf, Cline,"
@@ -268,5 +294,6 @@ echo "  Ora puoi dire alla tua AI:"
 echo -e "  ${BOLD}\"Usa Anomalia MCP (o la CLI) per elencare i brand\"${NC}"
 echo ""
 echo "  Cursor Agent Skill: skills/anomalia/SKILL.md"
+echo "  Directory install:  npx skills add andreabuttarelli/anomalia-cli --skill anomalia"
 echo "  Docs MCP: https://github.com/andreabuttarelli/anomalia-cli/blob/main/docs/mcp.md"
 echo ""

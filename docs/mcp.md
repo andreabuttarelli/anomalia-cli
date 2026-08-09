@@ -1,43 +1,30 @@
-# Anomalia MCP
+# Anomalia MCP — how to use it
 
-Model Context Protocol server for [Anomalia](https://anomalia.so). Same HTTPS client as the CLI
-(`lib/api.ts`), same OAuth identity — **no static API tokens**.
+Anomalia exposes a [Model Context Protocol](https://modelcontextprotocol.io) server so coding agents
+(Cursor, Claude, etc.) can manage brands, posts, plans, studio, SEO/GEO, and blog — with the **same
+OAuth login as the CLI**. There are **no static API tokens**.
 
 ```
-Local stdio:  MCP host  ──stdio──►  anomalia-mcp
-Local/remote: MCP host  ──HTTPS──►  /mcp  ──►  Anomalia /api/v1/*
-                         │
-                         └── Bearer JWT (OAuth) or ~/.config/anomalia/session.json (local only)
+Your agent
+   │  stdio (local)     →  bun run mcp  /  anomalia-mcp
+   │  HTTPS (remote)    →  https://mcp.anomalia.so/mcp  + Bearer
+   ▼
+Anomalia API  (/api/v1/*)
 ```
 
-## Transports
+## Quick start
 
-| Mode | Command / URL | Auth |
-|------|----------------|------|
-| **stdio** (local) | `bun run mcp` | Browser `login` tool or existing `anomalia login` session file |
-| **HTTP** (local) | `bun run mcp:http` → `http://localhost:8787/mcp` | Bearer **or** session file |
-| **HTTP** (Vercel / `mcp.anomalia.so`) | `https://mcp.anomalia.so/mcp` | **Bearer required** (`Authorization: Bearer <access_token>`) |
+### Option A — Local stdio (simplest)
 
-## Auth (OAuth only)
-
-1. **Local:** call `login` (opens browser) or run `anomalia login` — session at `~/.config/anomalia/session.json`.
-2. **Remote HTTP:** send the same Supabase access token the CLI stores after OAuth:
-   `Authorization: Bearer <access_token>`.
-3. `whoami` / `logout` inspect or clear the local session file (logout does not revoke a remote Bearer).
-
-There is intentionally **no** `ANOMALIA_TOKEN` / static API-key path.
-
-Protected resource metadata: `/.well-known/oauth-protected-resource` (points at `PUBLIC_APP_URL` / anomalia.so as authorization server).
-
-## Install / run
+1. Install [Bun](https://bun.sh) and clone the repo (or install the CLI binary).
+2. Authenticate once:
 
 ```bash
-bun install
-bun run mcp          # stdio
-bun run mcp:http     # Streamable HTTP on :8787
+anomalia login
+# or, after MCP is connected, call the `login` tool
 ```
 
-### Cursor — stdio
+3. Add to Cursor MCP config (absolute path required):
 
 ```json
 {
@@ -50,7 +37,21 @@ bun run mcp:http     # Streamable HTTP on :8787
 }
 ```
 
-### Cursor — HTTP (local or mcp.anomalia.so)
+4. Restart Cursor / reload MCP. Call `list_brands`, then work with a brand `slug`.
+
+Session file (shared with the CLI): `~/.config/anomalia/session.json`.
+
+### Option B — Remote HTTP (`mcp.anomalia.so`)
+
+1. Confirm the server is up:
+
+```bash
+curl -sS https://mcp.anomalia.so/health
+```
+
+Expect: `{"ok":true,"name":"anomalia-mcp","mcp":"/mcp",...}`.
+
+2. Cursor MCP config:
 
 ```json
 {
@@ -62,85 +63,78 @@ bun run mcp:http     # Streamable HTTP on :8787
 }
 ```
 
-If the client cannot send OAuth Bearer yet, use [mcp-remote](https://www.npmjs.com/package/mcp-remote) as a bridge, or run stdio locally.
+3. The host must send **`Authorization: Bearer <access_token>`** on every request.  
+   Use the Supabase access token from Anomalia OAuth (same value the CLI stores after `anomalia login`).  
+   Without Bearer you get **401** — that is correct, not a crash.
 
-## Deploy on Vercel (`mcp.anomalia.so`)
+If your client cannot attach Bearer yet, use [mcp-remote](https://www.npmjs.com/package/mcp-remote) or prefer **Option A**.
 
-The Vercel project **Root Directory must be `mcp`** (this repo's Vercel project is already set that way).
-Deploy artifacts live under `mcp/api/` + `mcp/vercel.json`.
-
-- `mcp/api/health.js` — zero-dependency ESM so `/health` always boots
-- `mcp/api/_bundle.js` — esbuild bundle of the MCP HTTP handler (includes `lib/`)
-- `mcp/api/mcp.js` / `oauth-protected-resource.js` — thin ESM wrappers
-
-Regenerate bundles from the repo root before deploy (committed so Vercel does not need parent `lib/`):
+### Option C — Local HTTP
 
 ```bash
-bun run vercel-build   # node scripts/build-vercel.mjs → mcp/api/* and api/*
+bun install
+bun run mcp:http
+# → http://localhost:8787/mcp
+#    http://localhost:8787/health
 ```
 
-1. Framework preset: **Other** (`framework: null` in `mcp/vercel.json`).
-2. Root Directory: **`mcp`** (not repo root).
-3. Attach domain `mcp.anomalia.so`.
-4. Set env vars (Observability below).
-5. Redeploy after each merge to `main`.
+Auth: Bearer **or** the local session file.
 
-Endpoints: `/mcp`, `/health`, `/.well-known/oauth-protected-resource`.
+## What to call first
 
-## Observability (Sentry + Supabase)
+1. `list_brands` — discover slugs  
+2. `get_dashboard` — brand overview  
+3. `list_posts` with status `pending_user` — approval queue  
+4. Prefer specific tools (`approve_posts`, `edit_post`, …) over `chat` for precise actions  
 
-Errors and structured logs from the MCP HTTP path go to:
+Post and article ids accept **short unambiguous prefixes** from list results (same rule as the CLI).
 
-1. **Vercel function logs** (stderr JSON lines)
-2. **Sentry** — when `SENTRY_DSN` is set
-3. **Supabase `public.mcp_logs`** — when `SUPABASE_SERVICE_ROLE_KEY` (+ `PUBLIC_SUPABASE_URL`) is set
+## Tool areas
 
-| Env | Required for | Notes |
-|-----|----------------|-------|
-| `SENTRY_DSN` | Sentry | Create a Sentry project; paste DSN in Vercel |
-| `SENTRY_ENVIRONMENT` | optional | defaults to `VERCEL_ENV` |
-| `SENTRY_TRACES_SAMPLE_RATE` | optional | default `0.1` |
-| `PUBLIC_SUPABASE_URL` | Supabase logs | already defaulted in CLI config for Anomalia |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase inserts | **server-only** — never expose to browsers |
-| `MCP_PUBLIC_URL` | OAuth metadata | e.g. `https://mcp.anomalia.so` |
-| `PUBLIC_APP_URL` | API + OAuth AS | default `https://anomalia.so` |
+| Area | Examples |
+|------|----------|
+| Auth | `login`, `logout`, `whoami`, `list_brands` |
+| Posts | `list_posts`, `get_post`, `edit_post`, `approve_posts`, `regenerate_slide`, `make_video` |
+| Plans | `get_plan`, `propose_plan`, `plan_week`, `produce_week` |
+| Studio | `get_studio`, `add_note`, `research_competitors` |
+| Web | `get_seo`, `get_geo`, `generate_article`, `chat` |
 
-Table `mcp_logs`: level, event, message, path, tool, user_id, status, duration, stack, context. RLS: service role write; users can `select` their own rows.
+Full map: [`skills/anomalia/references/tools.md`](../skills/anomalia/references/tools.md).
 
-## Tool map
+## Agent skill (directories / `npx skills`)
 
-| Area | Tools |
-|------|--------|
-| Auth | `login`, `logout`, `whoami` |
-| Brands | `list_brands`, `get_dashboard`, `get_status`, `get_analytics`, `get_calendar`, `get_gtm`, `get_voice`, `update_voice`, `list_products` |
-| Posts | `list_posts`, `get_post`, `edit_post`, `approve_posts`, `approve_post`, `publish_post`, `reject_post`, `reschedule_post`, `render_post`, `regenerate_post_media`, `regenerate_slide`, `reorder_slides`, `make_video` |
-| Plan | `get_plan`, `propose_plan`, `revise_plan`, `approve_plan`, `discard_plan`, `save_brief`, `replan_week`, `get_weekly_plan`, `plan_week`, `produce_week` |
-| Studio | `get_studio`, `update_brand_kit`, `set_colors`, `add_note`, `delete_document`, `add_person`, `generate_person`, `delete_person`, `add_competitor`, `delete_competitor`, `research_competitors`, `sync_history` |
-| SEO / GEO / Web | `get_seo`, `seo_action`, `get_geo`, `geo_action`, `get_keywords`, `refresh_keywords`, `list_articles`, `generate_article`, `optimize_article`, `publish_article`, `unpublish_article`, `delete_article` |
-| Ads / AI | `get_ads`, `ads_action`, `chat` |
-
-Post and article `id` arguments accept the short unambiguous prefixes printed by list tools
-(same rule as the CLI).
-
-## Agent skill
-
-For coding agents (Cursor / Claude / …), install the MCP+CLI skill:
+Publishable Agent Skill (agentskills.io):
 
 ```bash
-bash scripts/install-skill.sh --project
+npx skills add andreabuttarelli/anomalia-cli --skill anomalia
 ```
 
-Sources: [`skills/anomalia/SKILL.md`](../skills/anomalia/SKILL.md) (Cursor Agent Skill) and
-[`skills/anomalia-cli.md`](../skills/anomalia-cli.md) (flat / multi-tool installer).
+Sources: [`skills/anomalia/`](../skills/anomalia/) (`SKILL.md` + `references/`).
+
+## Auth rules (summary)
+
+| Context | How you authenticate |
+|---------|----------------------|
+| Local stdio / local HTTP | Browser `login` tool or `anomalia login` → session file |
+| Remote HTTP | `Authorization: Bearer <jwt>` required |
+| Static API key | **Not supported** |
+
+Protected resource metadata: `GET /.well-known/oauth-protected-resource`.
+
+## Deploy notes (operators)
+
+Vercel project **Root Directory = `mcp`**. Artifacts: `mcp/api/*`, `mcp/vercel.json`.  
+Rebuild bundles from repo root: `bun run vercel-build`.  
+Optional env: `SENTRY_DSN`, `SUPABASE_SERVICE_ROLE_KEY`, `MCP_PUBLIC_URL`, `PUBLIC_APP_URL`.
 
 ## Development
 
 ```bash
-bun run mcp              # stdio
-bun run mcp:http         # HTTP
-bun test                 # includes mcp helpers
+bun run mcp
+bun run mcp:http
+bun test
 bun run typecheck
 npx @modelcontextprotocol/inspector bun run mcp/stdio.ts
 ```
 
-Architecture: `mcp/stdio.ts` (stdio) / `mcp/http.ts` + `mcp/api/*.js` (HTTP / Vercel) → `mcp/http-router.ts` → `mcp/http-app.ts` → `mcp/server.ts` → `lib/api.ts` + auth. Observability: `mcp/observability.ts`.
+Architecture: `mcp/stdio.ts` / `mcp/http.ts` + `mcp/api/*.js` → `http-router` → `http-app` → `server` → `lib/api.ts`.

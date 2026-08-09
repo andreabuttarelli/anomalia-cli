@@ -60,19 +60,20 @@ Full docs: [`docs/`](docs/) · Agent-oriented summary: [`llms.txt`](llms.txt)
 
 ## Use with AI agents
 
-The CLI and MCP are built to be driven by coding agents.
-
-- **Cursor Agent Skill (MCP + CLI):** [`skills/anomalia/SKILL.md`](skills/anomalia/SKILL.md)
-- Flat skill / installer source: [`skills/anomalia-cli.md`](skills/anomalia-cli.md)
-- Full CLI dump: [`llms.txt`](llms.txt)
+Publishable **Agent Skill** (Cursor / Claude / `npx skills` / skills.sh):
 
 ```bash
-bash scripts/install-skill.sh --project   # Cursor skill + Claude + AGENTS.md + …
+npx skills add andreabuttarelli/anomalia-cli --skill anomalia
+# or
+bash scripts/install-skill.sh --project
 ```
 
-`anomalia ai <brand> --message "..."` pipes a natural-language instruction to the same assistant
-that runs in the web app; add `--pipe` for raw, unformatted output. With MCP connected, prefer
-the `chat` tool (or specific tools) instead of shelling out.
+- Skill package: [`skills/anomalia/`](skills/anomalia/) (`SKILL.md` + `references/`)
+- MCP how-to: [`docs/mcp.md`](docs/mcp.md)
+- Full CLI dump: [`llms.txt`](llms.txt)
+
+Prefer MCP tools when connected; otherwise `anomalia …` after `anomalia login`.
+For open-ended work: MCP `chat` or `anomalia ai <brand> --message "..." --pipe`.
 
 ### MCP server
 

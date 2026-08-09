@@ -66,20 +66,22 @@ If the client cannot send OAuth Bearer yet, use [mcp-remote](https://www.npmjs.c
 
 ## Deploy on Vercel (`mcp.anomalia.so`)
 
-Vercel deploys **Node serverless** functions under `api/` (rewrites `/mcp` → `/api/mcp`). The CLI entry is `cli.ts` (not `index.ts`) so Vercel does not treat the repo as a Bun backend app.
+Vercel deploys **Node serverless** `api/*.js` files. `vercel-build` runs esbuild to bundle the
+MCP handler (Bun-style `.ts` imports are not left for `@vercel/node` to resolve). `api/health.js`
+is a zero-dependency file so `/health` stays up even if the MCP bundle fails.
 
 1. Import the GitHub repo in Vercel (Root Directory = repo root).
 2. Framework preset: **Other**.
-3. Build uses `vercel-build` (skips the CLI binary compile).
-4. Attach domain `mcp.anomalia.so` (DNS CNAME/A as Vercel instructs).
-5. Set env vars (see Observability below).
-6. On Vercel, `VERCEL=1` forces Bearer auth (no session-file fallback).
+3. Attach domain `mcp.anomalia.so`.
+4. Set env vars (Observability below).
+5. Redeploy after each merge to `main`.
 
 ```bash
+bun run vercel-build   # locally: writes api/_bundle.cjs + api/mcp.js
 npx vercel --prod
 ```
 
-Endpoints after deploy: `/mcp`, `/health`, `/.well-known/oauth-protected-resource`.
+Endpoints: `/mcp`, `/health`, `/.well-known/oauth-protected-resource`.
 
 ## Observability (Sentry + Supabase)
 
@@ -126,4 +128,4 @@ bun run typecheck
 npx @modelcontextprotocol/inspector bun run mcp/index.ts
 ```
 
-Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` + `api/*` (HTTP / Vercel) → `mcp/http-router.ts` → `mcp/http-app.ts` → `mcp/server.ts` → `lib/api.ts` + auth. Observability: `mcp/observability.ts`.
+Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` + `api/*.cjs` (HTTP / Vercel, built by `vercel-build`) → `mcp/http-router.ts` → `mcp/http-app.ts` → `mcp/server.ts` → `lib/api.ts` + auth. Observability: `mcp/observability.ts`.

@@ -113,13 +113,14 @@ Run `anomalia login` once to authenticate via browser. Session is saved in `~/.c
 
 ## MCP
 
-Stdio MCP server in `mcp/` — same OAuth session as the CLI (browser login, no static API tokens).
+MCP server in `mcp/` — stdio + Streamable HTTP. Same OAuth identity as the CLI (no static API tokens).
 
 ```bash
-bun run mcp
+bun run mcp          # stdio
+bun run mcp:http     # http://localhost:8787/mcp
 ```
 
-Auth tools: `login`, `logout`, `whoami`. Then brand/post/plan/studio/SEO/GEO/web/ads/chat tools mirror the CLI. Full map: `docs/mcp.md`.
+Remote (Vercel / `mcp.anomalia.so`): `Authorization: Bearer <access_token>`. Full map: `docs/mcp.md`.
 
 ## Architecture
 

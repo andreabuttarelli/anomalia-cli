@@ -15,8 +15,8 @@ export function createAnomaliaMcpServer(): McpServer {
     },
     {
       instructions: [
-        'Authenticate with the `login` tool (browser OAuth). There is no static API token.',
-        'The MCP shares ~/.config/anomalia/session.json with the Anomalia CLI — if `anomalia login` already ran, `whoami` should succeed.',
+        'Auth: browser OAuth via the `login` tool (local stdio/HTTP) or Authorization: Bearer <access_token> (remote HTTP). No static API tokens.',
+        'Local MCP shares ~/.config/anomalia/session.json with the Anomalia CLI.',
         'Always start with `list_brands` (or `whoami`) to learn brand slugs.',
         'Post and article ids accept short unambiguous prefixes from list tools.',
         'Prefer specific tools for deterministic actions; use `chat` for open-ended multi-step work.',

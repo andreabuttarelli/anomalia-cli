@@ -1,41 +1,43 @@
 # Anomalia MCP
 
 Model Context Protocol server for [Anomalia](https://anomalia.so). Same HTTPS client as the CLI
-(`lib/api.ts`), same OAuth session — **no static API tokens**.
+(`lib/api.ts`), same OAuth identity — **no static API tokens**.
 
 ```
-MCP host  ──stdio──►  anomalia-mcp  ──HTTPS──►  /api/v1/*  ──►  Anomalia
+Local stdio:  MCP host  ──stdio──►  anomalia-mcp
+Local/remote: MCP host  ──HTTPS──►  /mcp  ──►  Anomalia /api/v1/*
                          │
-                         └── OAuth session in ~/.config/anomalia/session.json
-                             (shared with `anomalia login`)
+                         └── Bearer JWT (OAuth) or ~/.config/anomalia/session.json (local only)
 ```
+
+## Transports
+
+| Mode | Command / URL | Auth |
+|------|----------------|------|
+| **stdio** (local) | `bun run mcp` | Browser `login` tool or existing `anomalia login` session file |
+| **HTTP** (local) | `bun run mcp:http` → `http://localhost:8787/mcp` | Bearer **or** session file |
+| **HTTP** (Vercel / `mcp.anomalia.so`) | `https://mcp.anomalia.so/mcp` | **Bearer required** (`Authorization: Bearer <access_token>`) |
 
 ## Auth (OAuth only)
 
-1. Call the `login` tool — opens the browser, waits for consent, stores a refreshable session.
-2. Or run `anomalia login` once in a terminal; the MCP reuses that session automatically.
-3. `whoami` / `logout` inspect or clear the session.
+1. **Local:** call `login` (opens browser) or run `anomalia login` — session at `~/.config/anomalia/session.json`.
+2. **Remote HTTP:** send the same Supabase access token the CLI stores after OAuth:
+   `Authorization: Bearer <access_token>`.
+3. `whoami` / `logout` inspect or clear the local session file (logout does not revoke a remote Bearer).
 
-There is intentionally **no** `ANOMALIA_TOKEN` / API-key path.
+There is intentionally **no** `ANOMALIA_TOKEN` / static API-key path.
 
-> Remote MCP OAuth (hosted server + MCP Authorization Spec) still needs Authorization Server
-> endpoints on Anomalia itself. This stdio server covers local hosts (Cursor, Claude Desktop,
-> Codex) with the existing browser OAuth loopback flow.
+Protected resource metadata: `/.well-known/oauth-protected-resource` (points at `PUBLIC_APP_URL` / anomalia.so as authorization server).
 
 ## Install / run
 
-From this repo (requires [Bun](https://bun.sh)):
-
 ```bash
 bun install
-bun run mcp
+bun run mcp          # stdio
+bun run mcp:http     # Streamable HTTP on :8787
 ```
 
-The process waits on stdin for an MCP host — that is expected.
-
-### Cursor
-
-In Cursor MCP settings (`~/.cursor/mcp.json` or project `.cursor/mcp.json`):
+### Cursor — stdio
 
 ```json
 {
@@ -48,11 +50,32 @@ In Cursor MCP settings (`~/.cursor/mcp.json` or project `.cursor/mcp.json`):
 }
 ```
 
-Optional: set `PUBLIC_APP_URL` in `env` to point at a non-default Anomalia instance.
+### Cursor — HTTP (local or mcp.anomalia.so)
 
-### Claude Desktop
+```json
+{
+  "mcpServers": {
+    "anomalia": {
+      "url": "https://mcp.anomalia.so/mcp"
+    }
+  }
+}
+```
 
-Same shape under `mcpServers` in Claude's config file — `command` + `args` as above.
+If the client cannot send OAuth Bearer yet, use [mcp-remote](https://www.npmjs.com/package/mcp-remote) as a bridge, or run stdio locally.
+
+## Deploy on Vercel (`mcp.anomalia.so`)
+
+This repo includes `vercel.json` + `api/mcp.ts` (Streamable HTTP, stateless JSON responses).
+
+1. Import the GitHub repo in Vercel (Root Directory = repo root).
+2. Set env if needed: `PUBLIC_APP_URL=https://anomalia.so`, optional `MCP_PUBLIC_URL=https://mcp.anomalia.so`.
+3. Attach domain `mcp.anomalia.so`.
+4. On Vercel, `VERCEL=1` forces Bearer auth (no session-file fallback).
+
+```bash
+npx vercel --prod
+```
 
 ## Tool map
 
@@ -72,10 +95,11 @@ Post and article `id` arguments accept the short unambiguous prefixes printed by
 ## Development
 
 ```bash
-bun run mcp              # stdio server
-bun test mcp             # unit tests for MCP helpers
+bun run mcp              # stdio
+bun run mcp:http         # HTTP
+bun test                 # includes mcp helpers
 bun run typecheck
 npx @modelcontextprotocol/inspector bun run mcp/index.ts
 ```
 
-Architecture: `mcp/index.ts` → `mcp/server.ts` registers tools → `lib/api.ts` + `lib/auth.ts`.
+Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` (HTTP) → `mcp/server.ts` → `lib/api.ts` + auth.

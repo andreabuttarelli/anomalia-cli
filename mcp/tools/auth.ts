@@ -6,6 +6,7 @@ import {
   loadSession,
   startBrowserLogin,
 } from '../../lib/auth.ts';
+import { getRequestAuth } from '../context.ts';
 import { fail, ok, withAuth } from '../util.ts';
 
 export function registerAuthTools(server: McpServer) {
@@ -20,14 +21,31 @@ export function registerAuthTools(server: McpServer) {
     },
     async () => {
       try {
+        const bearer = getRequestAuth();
+        if (bearer) {
+          return ok({
+            alreadyAuthenticated: true,
+            email: bearer.user.email,
+            source: 'bearer',
+            hint: 'Request already carries a Bearer access token. No browser login needed.',
+          });
+        }
+
         const existing = await loadSession();
         if (existing) {
           return ok({
             alreadyAuthenticated: true,
             email: existing.user.email,
             expiresAt: existing.expires_at,
+            source: 'session',
             hint: 'Already signed in. Call logout first if you need to switch accounts.',
           });
+        }
+
+        if (process.env.VERCEL === '1' || process.env.MCP_REQUIRE_BEARER === '1') {
+          return fail(
+            'Browser login is not available on the remote MCP. Pass Authorization: Bearer <access_token> from your Anomalia OAuth session (same JWT stored by `anomalia login`).',
+          );
         }
 
         const session = await startBrowserLogin((msg: string) => {
@@ -39,6 +57,7 @@ export function registerAuthTools(server: McpServer) {
           authenticated: true,
           email: session.user.email,
           expiresAt: session.expires_at,
+          source: 'session',
         });
       } catch (e) {
         return fail(e instanceof Error ? e.message : String(e));
@@ -69,15 +88,28 @@ export function registerAuthTools(server: McpServer) {
       annotations: { readOnlyHint: true },
     },
     async () => {
+      const bearer = getRequestAuth();
+      if (bearer) {
+        return ok({
+          authenticated: true,
+          email: bearer.user.email,
+          userId: bearer.user.id,
+          source: 'bearer',
+        });
+      }
       const session = await loadSession();
       if (!session) {
-        return ok({ authenticated: false, hint: 'Call login to authenticate via browser OAuth.' });
+        return ok({
+          authenticated: false,
+          hint: 'Call login (local) or send Authorization: Bearer <access_token> (remote HTTP).',
+        });
       }
       return ok({
         authenticated: true,
         email: session.user.email,
         userId: session.user.id,
         expiresAt: session.expires_at,
+        source: 'session',
       });
     },
   );

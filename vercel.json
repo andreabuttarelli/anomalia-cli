@@ -1,0 +1,27 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, mcp-session-id, Last-Event-ID, mcp-protocol-version"
+        },
+        {
+          "key": "Access-Control-Expose-Headers",
+          "value": "mcp-session-id, mcp-protocol-version"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/mcp", "destination": "/api/mcp" },
+    { "source": "/health", "destination": "/api/health" },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/api/oauth-protected-resource"
+    },
+    { "source": "/", "destination": "/api/health" }
+  ]
+}

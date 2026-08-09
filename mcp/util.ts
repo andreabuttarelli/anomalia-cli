@@ -1,6 +1,7 @@
 import { api } from '../lib/api.ts';
 import { loadSession, type StoredSession } from '../lib/auth.ts';
 import { resolveByPrefix } from '../lib/select.ts';
+import { getRequestAuth } from './context.ts';
 
 export type ToolResult = {
   content: { type: 'text'; text: string }[];
@@ -27,17 +28,32 @@ export function fail(message: string): ToolResult {
   };
 }
 
-/** Active OAuth session, or a tool error asking the agent to call `login`. */
+function sessionFromRequestAuth(): StoredSession | null {
+  const ctx = getRequestAuth();
+  if (!ctx) return null;
+  return {
+    access_token: ctx.access_token,
+    refresh_token: '',
+    expires_at: ctx.expires_at ?? Math.floor(Date.now() / 1000) + 3600,
+    user: ctx.user,
+  };
+}
+
+/** Active OAuth session (HTTP Bearer or local CLI session file). */
 export async function requireAuth(): Promise<
   { ok: true; session: StoredSession } | { ok: false; result: ToolResult }
 > {
+  const fromHttp = sessionFromRequestAuth();
+  if (fromHttp) return { ok: true, session: fromHttp };
+
   const session = await loadSession();
   if (!session) {
     return {
       ok: false,
       result: fail(
-        'Not authenticated. Call the `login` tool to sign in via browser OAuth (no static API tokens). ' +
-          'If you already ran `anomalia login` in a terminal, the MCP reuses that same session.',
+        'Not authenticated. For local stdio/HTTP: call the `login` tool (browser OAuth) or run `anomalia login`. ' +
+          'For remote HTTP (mcp.anomalia.so): send Authorization: Bearer <access_token> from your Anomalia OAuth session. ' +
+          'No static API tokens are supported.',
       ),
     };
   }

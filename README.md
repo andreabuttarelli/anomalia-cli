@@ -72,14 +72,14 @@ that runs in the web app; add `--pipe` for raw, unformatted output.
 
 ### MCP server
 
-There is also a stdio [MCP](https://modelcontextprotocol.io) server in `mcp/` — same API client,
-same browser OAuth session as the CLI (**no static tokens**). Docs: [`docs/mcp.md`](docs/mcp.md).
+Stdio **and** Streamable HTTP — same tools, same OAuth identity (**no static tokens**). Docs: [`docs/mcp.md`](docs/mcp.md).
 
 ```bash
-bun run mcp
+bun run mcp          # stdio (Cursor local)
+bun run mcp:http     # http://localhost:8787/mcp
 ```
 
-Cursor example (`mcp.json`):
+Cursor stdio:
 
 ```json
 {
@@ -92,7 +92,17 @@ Cursor example (`mcp.json`):
 }
 ```
 
-Call the `login` tool (or run `anomalia login` once) before other tools.
+Cursor HTTP (e.g. after deploying to `mcp.anomalia.so`):
+
+```json
+{
+  "mcpServers": {
+    "anomalia": { "url": "https://mcp.anomalia.so/mcp" }
+  }
+}
+```
+
+Remote HTTP requires `Authorization: Bearer <access_token>` (the JWT from Anomalia OAuth / `anomalia login`). Local stdio can use the `login` tool or an existing CLI session.
 
 ## Configuration
 

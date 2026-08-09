@@ -86,7 +86,7 @@ Cursor stdio:
   "mcpServers": {
     "anomalia": {
       "command": "bun",
-      "args": ["run", "/ABS/PATH/to/anomalia-cli/mcp/index.ts"]
+      "args": ["run", "/ABS/PATH/to/anomalia-cli/mcp/stdio.ts"]
     }
   }
 }

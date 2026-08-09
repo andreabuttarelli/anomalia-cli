@@ -1,127 +1,71 @@
 ---
 name: anomalia
 description: >-
-  Operate Anomalia (social media AI autopilot) via MCP tools or the `anomalia` CLI —
-  brands, posts, editorial/weekly plans, studio, SEO/GEO, blog, and AI chat.
-  Use when the user mentions Anomalia, anomalia.so, brand content approval, SEO/GEO
-  audits, or asks to manage social posts / plans from an agent.
+  Operate Anomalia (social media AI autopilot) via MCP tools or the anomalia CLI:
+  brands, posts, plans, studio, SEO/GEO, blog, and AI chat. Use when the user
+  mentions Anomalia, anomalia.so, approving social posts, editorial plans,
+  SEO/GEO audits, or managing brand content from an agent.
+license: AGPL-3.0-or-later
+compatibility: >-
+  Requires network access to anomalia.so (or PUBLIC_APP_URL). Prefer Anomalia MCP
+  when connected; otherwise the anomalia CLI (Bun or installed binary) after OAuth login.
+metadata:
+  author: andreabuttarelli
+  version: "1.0.0"
+  homepage: https://anomalia.so
+  repository: https://github.com/andreabuttarelli/anomalia-cli
+  mcp: https://mcp.anomalia.so/mcp
 ---
 
-# Anomalia (MCP + CLI)
+# Anomalia
 
-Anomalia is a hosted product. This skill drives it through either:
+Drive [Anomalia](https://anomalia.so) — social media AI autopilot — through **MCP tools**
+(preferred) or the **`anomalia` CLI**. Same OAuth identity. **No static API tokens.**
 
-1. **MCP tools** (preferred when the Anomalia MCP server is connected)
-2. **`anomalia` CLI** (shell) when MCP is unavailable
+## Choose interface
 
-Same OAuth identity for both. **No static API tokens.**
+| Situation | Action |
+|-----------|--------|
+| Anomalia MCP is connected | Call MCP tools (`list_brands`, `list_posts`, …) |
+| MCP not available | Shell: `anomalia …` after `anomalia login` |
+| Vague / multi-step ask | MCP `chat` or `anomalia ai <slug> --message "…" --pipe` |
 
-## Choose transport
+Never invent REST endpoints or API keys.
 
-| Situation | Use |
-|-----------|-----|
-| Cursor/Claude has Anomalia MCP connected | **MCP tools** (`list_brands`, `list_posts`, …) |
-| MCP missing / remote HTTP auth awkward | **CLI**: `anomalia …` after `anomalia login` |
-| One-shot NL instruction | MCP `chat` **or** `anomalia ai <slug> --message "..." --pipe` |
+## Auth (always OAuth)
 
-Do **not** invent REST URLs or tokens. Prefer specific tools/commands over free-form guessing.
+1. **Local MCP / CLI:** shared session at `~/.config/anomalia/session.json`. MCP tool `login` opens the browser, or run `anomalia login`.
+2. **Remote MCP** (`https://mcp.anomalia.so/mcp`): send `Authorization: Bearer <access_token>` (same JWT the CLI stores). Missing Bearer → 401.
+3. Verify with `whoami` / `list_brands` or `anomalia brands`.
 
-## Auth
-
-**Local MCP / CLI**
-
-- Session file: `~/.config/anomalia/session.json` (shared)
-- MCP: call `login` (browser) or reuse an existing CLI session
-- CLI: `anomalia login` once
-
-**Remote MCP** (`https://mcp.anomalia.so/mcp` or deploy URL)
-
-- Requires `Authorization: Bearer <supabase_access_token>` from OAuth / that session file
-- Without Bearer → 401 (expected)
-
-Check identity: MCP `whoami` / `list_brands`, or `anomalia brands`.
-
-## Connect MCP (hosts)
-
-**Stdio (local)**
-
-```json
-{
-  "mcpServers": {
-    "anomalia": {
-      "command": "bun",
-      "args": ["run", "/ABS/PATH/to/anomalia-cli/mcp/stdio.ts"]
-    }
-  }
-}
-```
-
-Or after install: `"command": "anomalia-mcp"` if on `PATH`.
-
-**HTTP**
-
-```json
-{
-  "mcpServers": {
-    "anomalia": { "url": "https://mcp.anomalia.so/mcp" }
-  }
-}
-```
-
-Health: `GET /health` → `{"ok":true,"mcp":"/mcp"}`.
+Setup details: [references/mcp.md](references/mcp.md).
 
 ## Operating rules
 
-1. Start with `list_brands` / `anomalia brands` to learn **slugs**.
+1. Start with `list_brands` (or `anomalia brands`) to learn **slugs**.
 2. Pass `slug` on every brand-scoped call.
-3. Ids from list tables accept **short unambiguous prefixes** (never guess if ambiguous).
-4. Prefer deterministic tools (`approve_posts`, `edit_post`, …) over `chat` / `ai` for precise edits.
-5. Use `chat` / `anomalia ai` for multi-step or vague goals; add `--pipe` on CLI for raw output.
-6. Destructive actions (`reject_post`, `delete_article`, `discard_plan`): confirm intent if the user did not clearly ask.
+3. Post/article ids accept **short unambiguous prefixes** from list output — never guess if ambiguous.
+4. Prefer specific tools (`approve_posts`, `edit_post`, …) over `chat` for precise edits.
+5. Confirm before reject / delete / discard unless the user clearly asked.
 
-## MCP → CLI cheat sheet
+## Quick workflows
 
-| Goal | MCP | CLI |
-|------|-----|-----|
-| List brands | `list_brands` | `anomalia brands` |
-| Overview | `get_dashboard` | `anomalia dashboard <slug>` |
-| Pending posts | `list_posts` (status) | `anomalia content <slug> --status pending_user` |
-| Approve all pending | `approve_posts` | `anomalia approve <slug> --all` |
-| Show / edit post | `get_post` / `edit_post` | `anomalia post <slug> <id> [edit …]` |
-| Approve / publish / reject | `approve_post` / `publish_post` / `reject_post` | `anomalia post <slug> <id> approve\|publish\|reject` |
-| Refine image / slide / video | `regenerate_post_media` / `regenerate_slide` / `make_video` | `… regenerate\|slide\|video` |
-| Editorial plan | `get_plan` / `propose_plan` / `approve_plan` / … | `anomalia plan <slug> …` |
-| Weekly seeds → posts | `get_weekly_plan` / `plan_week` / `produce_week` | `anomalia weekly-plan <slug> …` |
-| Studio / voice / GTM | `get_studio` / `get_voice` / `get_gtm` / … | `anomalia studio\|voice\|gtm <slug>` |
-| SEO / GEO / keywords / blog | `get_seo` / `seo_action` / `get_geo` / `list_articles` / … | `anomalia seo\|geo\|keywords\|web <slug> …` |
-| Open-ended | `chat` | `anomalia ai <slug> --message "…" --pipe` |
+**Approve pending posts** → `list_posts` (status pending) → optional `get_post` → `approve_posts`.
 
-Full CLI reference: repo `llms.txt` or `skills/anomalia-cli.md`. MCP details: `docs/mcp.md`.
+**Fix one carousel slide** → `get_post` → `regenerate_slide` (`index`, instruction; 0 = cover).
 
-## Typical workflows
+**Blog draft** → `generate_article` → optional `optimize_article` → `publish_article` when asked.
 
-**Approve queue**
+## References (load on demand)
 
-1. `list_posts` / `content --status pending_user`
-2. Spot-check with `get_post` if needed
-3. `approve_posts` / `approve --all` (or per-id approve)
+- [references/mcp.md](references/mcp.md) — connect MCP (stdio / HTTP), Cursor config, auth
+- [references/tools.md](references/tools.md) — full MCP tool catalog + CLI equivalents
+- [references/cli.md](references/cli.md) — install CLI and common commands
 
-**Fix one carousel slide**
-
-1. `get_post`
-2. `regenerate_slide` with `index` + instruction (0 = cover)
-
-**Ship a blog draft**
-
-1. `generate_article` / `web generate --topic "…"`
-2. Optional `optimize_article`
-3. `publish_article` when asked
-
-## Install CLI (if needed)
+## Install this skill
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/scripts/install.sh | bash
-anomalia login
+npx skills add andreabuttarelli/anomalia-cli --skill anomalia
 ```
 
-From source: `bun install` then `bun run cli.ts` / `bun run mcp`.
+Or copy `skills/anomalia/` into `.cursor/skills/anomalia/` / `~/.claude/skills/anomalia/`.

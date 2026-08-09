@@ -1,32 +1,68 @@
-# Anomalia CLI
+# Anomalia CLI · MCP · Skill
 
-Command-line client for [Anomalia](https://anomalia.so) — the social media AI autopilot.
+Client tooling for [Anomalia](https://anomalia.so) — the social media AI autopilot.
 
-> **You need an Anomalia account.** This is a client, not a standalone tool: every command talks to
-> the Anomalia API over HTTPS. Without an account there is nothing to drive. (Same shape as the
-> Vercel or Stripe CLIs.)
+This repository ships **three ways** to drive the same product (same OAuth, same API, **no static tokens**):
+
+| | What | Who it’s for |
+|---|------|----------------|
+| **CLI** | `anomalia` terminal commands | Humans & scripts |
+| **MCP** | Model Context Protocol server (`stdio` + HTTP) | Cursor, Claude, other MCP hosts |
+| **Skill** | Agent Skill (`skills/anomalia/`) | Coding agents / skills.sh / `npx skills` |
+
+> **You need an Anomalia account.** This is a client, not a standalone tool: every call talks to
+> the Anomalia API over HTTPS. Without an account there is nothing to drive.
 
 Plan and approve posts, edit a carousel slide by slide, turn a post into a video, run SEO and GEO
-audits, manage the blog — all from the terminal, and all scriptable by an AI agent.
+audits, manage the blog — from the terminal **or** from an AI agent.
 
-```bash
-anomalia brands                                    # List your brands
-anomalia dashboard my-brand                        # Full brand overview
-anomalia content my-brand --status pending_user    # Posts waiting for approval
-anomalia approve my-brand --all                    # Approve them
-anomalia seo my-brand                              # SEO grade + initiatives
-anomalia web my-brand generate --topic "..."       # Write a blog article
+```text
+┌─────────────┐   ┌─────────────┐   ┌──────────────────┐
+│  anomalia   │   │  MCP host   │   │  Agent + Skill   │
+│    CLI      │   │ (Cursor…)   │   │  (npx skills)    │
+└──────┬──────┘   └──────┬──────┘   └────────┬─────────┘
+       │                 │                   │
+       │    lib/api.ts + OAuth session       │
+       └─────────────────┼───────────────────┘
+                         ▼
+                 Anomalia /api/v1/*
 ```
 
-## Install
+---
+
+## 1. CLI
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/scripts/install.sh | bash
 anomalia login
 ```
 
-The installer downloads a standalone binary — no runtime required. Prebuilt for macOS
-(arm64/x64) and Linux (arm64/x64).
+Standalone binary for macOS (arm64/x64) and Linux (arm64/x64) — no runtime required.
+
+```bash
+anomalia brands
+anomalia dashboard my-brand
+anomalia content my-brand --status pending_user
+anomalia approve my-brand --all
+anomalia seo my-brand
+anomalia web my-brand generate --topic "..."
+anomalia ai my-brand --message "..." --pipe
+```
+
+Every command takes the brand slug as its first argument. `anomalia --help` lists them all;
+`anomalia <command> --help` details one. Short id prefixes from tables are accepted; ambiguous
+prefixes error instead of guessing.
+
+| Area | Commands |
+|------|----------|
+| Posts | `content`, `approve`, `post <id> [show\|edit\|regenerate\|slide\|reorder\|video\|publish]` |
+| Planning | `plan`, `weekly-plan`, `calendar`, `gtm` |
+| Brand | `studio`, `voice`, `people`, `products` |
+| Web | `seo`, `geo`, `keywords`, `web` |
+| Insight | `dashboard`, `status`, `analytics` |
+| AI | `ai --message "..."` — natural language, full read/write access |
+
+Full command dump: [`llms.txt`](llms.txt) · more docs: [`docs/`](docs/)
 
 ### From source
 
@@ -39,52 +75,20 @@ bun install
 bun run cli.ts --help
 ```
 
-## Usage
+---
 
-Every command takes the brand slug as its first argument. `anomalia --help` lists them all;
-`anomalia <command> --help` details one.
+## 2. MCP server
 
-| Area | Commands |
-|------|----------|
-| Posts | `content`, `approve`, `post <id> [show\|edit\|regenerate\|slide\|reorder\|video\|publish]` |
-| Planning | `plan`, `weekly-plan`, `calendar`, `gtm` |
-| Brand | `studio`, `voice`, `people`, `products` |
-| Web | `seo`, `geo`, `keywords`, `web` |
-| Insight | `dashboard`, `status`, `analytics` |
-| AI | `ai --message "..."` — natural language, full read/write access |
-
-Where a table prints a short id, the matching `--id` flag accepts that prefix. An ambiguous
-prefix is an error, never a guess.
-
-Full docs: [`docs/`](docs/) · Agent-oriented summary: [`llms.txt`](llms.txt)
-
-## Use with AI agents
-
-Publishable **Agent Skill** (Cursor / Claude / `npx skills` / skills.sh):
+Same tools and OAuth as the CLI. Docs: **[`docs/mcp.md`](docs/mcp.md)**.
 
 ```bash
-npx skills add andreabuttarelli/anomalia-cli --skill anomalia
-# or
-bash scripts/install-skill.sh --project
-```
-
-- Skill package: [`skills/anomalia/`](skills/anomalia/) (`SKILL.md` + `references/`)
-- MCP how-to: [`docs/mcp.md`](docs/mcp.md)
-- Full CLI dump: [`llms.txt`](llms.txt)
-
-Prefer MCP tools when connected; otherwise `anomalia …` after `anomalia login`.
-For open-ended work: MCP `chat` or `anomalia ai <brand> --message "..." --pipe`.
-
-### MCP server
-
-Stdio **and** Streamable HTTP — same tools, same OAuth identity (**no static tokens**). Docs: [`docs/mcp.md`](docs/mcp.md).
-
-```bash
-bun run mcp          # stdio (Cursor local)
+bun run mcp          # stdio (local hosts)
 bun run mcp:http     # http://localhost:8787/mcp
 ```
 
-Cursor stdio:
+Remote: `https://mcp.anomalia.so/mcp` (Bearer JWT required). Health: `GET /health`.
+
+**Cursor — stdio**
 
 ```json
 {
@@ -97,7 +101,7 @@ Cursor stdio:
 }
 ```
 
-Cursor HTTP (e.g. after deploying to `mcp.anomalia.so`):
+**Cursor — HTTP**
 
 ```json
 {
@@ -107,50 +111,79 @@ Cursor HTTP (e.g. after deploying to `mcp.anomalia.so`):
 }
 ```
 
-Remote HTTP requires `Authorization: Bearer <access_token>` (the JWT from Anomalia OAuth / `anomalia login`). Local stdio can use the `login` tool or an existing CLI session.
+- Local stdio: `login` tool or existing `anomalia login` → `~/.config/anomalia/session.json`
+- Remote HTTP: `Authorization: Bearer <access_token>` (401 without it is expected)
+
+---
+
+## 3. Agent Skill
+
+Publishable [Agent Skill](https://agentskills.io) for Cursor, Claude, skills.sh, and friends:
+
+```bash
+npx skills add andreabuttarelli/anomalia-cli --skill anomalia
+# or
+bash scripts/install-skill.sh --project
+```
+
+Package: [`skills/anomalia/`](skills/anomalia/) (`SKILL.md` + `references/` for MCP setup, tool map, CLI).
+
+When the skill is active, agents prefer **MCP tools** if connected, otherwise the **CLI**.
+
+---
 
 ## Configuration
 
-Zero config by default. It points at `https://anomalia.so`, falling back to
-`http://localhost:5173` automatically when a local dev server is answering.
+Zero config by default → `https://anomalia.so`, with automatic fallback to
+`http://localhost:5173` when a local app is answering.
 
 | Variable | Purpose |
 |----------|---------|
-| `PUBLIC_APP_URL` | Point the CLI/MCP at a different Anomalia instance |
-| `SENTRY_DSN` | (MCP HTTP / Vercel) Send errors to Sentry |
-| `SUPABASE_SERVICE_ROLE_KEY` | (MCP HTTP / Vercel) Insert rows into `mcp_logs` |
+| `PUBLIC_APP_URL` | Point CLI/MCP at another Anomalia instance |
+| `SENTRY_DSN` | (MCP HTTP / Vercel) Errors → Sentry |
+| `SUPABASE_SERVICE_ROLE_KEY` | (MCP HTTP / Vercel) Rows in `mcp_logs` |
 | `MCP_PUBLIC_URL` | Public MCP base URL for OAuth metadata |
 
-The session lives in `~/.config/anomalia/session.json` and refreshes itself; `anomalia logout`
-removes it. No secrets are embedded in this repo or in the binary — the CLI holds only your own
-session token.
+Session: `~/.config/anomalia/session.json`. `anomalia logout` clears it. No secrets are embedded
+in this repo or the binary.
+
+---
 
 ## Architecture
 
-A thin HTTP client with no database access and no dependency on the Anomalia server codebase:
+Thin HTTPS client — no DB access, no coupling to the Anomalia server codebase:
 
 ```
-CLI  ──HTTPS──►  /api/v1/*  ──►  Anomalia
+CLI  ──┐
+MCP  ──┼── HTTPS ──►  /api/v1/*  ──►  Anomalia
+Skill ─┘   (guides agents to CLI or MCP)
 ```
 
-Commands live in `commands/`, one file each, registered in `cli.ts`. `lib/api.ts` is the only
-place that speaks HTTP. The MCP server in `mcp/` reuses that client and registers tools instead
-of printing tables.
+- CLI commands: `commands/` + `cli.ts`
+- HTTP client: `lib/api.ts` only
+- MCP: `mcp/` (reuses `lib/api.ts`, registers tools)
+- Skill: `skills/anomalia/`
+
+---
 
 ## Development
 
 ```bash
 bun install
-bun run cli.ts --help   # run from source
+bun run cli.ts --help
+bun run mcp
+bun run mcp:http
 bun run typecheck
 bun test
-bun run build             # binary for the current platform → dist/
+bun run build             # binary → dist/
 bun run build:all         # all four targets
+bun run vercel-build      # MCP bundles under mcp/api/
 ```
 
-Releases are cut by pushing a `v*` tag: CI typechecks, tests, cross-compiles the four binaries and
-attaches them (plus `SHA256SUMS.txt`) to a GitHub Release — which is exactly where `install.sh`
-and `anomalia update` look.
+Releases: push a `v*` tag → CI typechecks, tests, cross-compiles binaries + `SHA256SUMS.txt` on
+the GitHub Release (`install.sh` / `anomalia update`).
+
+---
 
 ## License
 

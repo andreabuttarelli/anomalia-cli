@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /**
- * Bundle MCP HTTP handlers into self-contained ESM under api/.
- * Uses Node + esbuild so Vercel does not need Bun for vercel-build.
+ * Bundle MCP HTTP handlers into self-contained ESM under mcp/api/.
  *
- * Underscore-prefixed bundles are ignored as routes by Vercel; thin wrappers
- * re-export default + config.
+ * Vercel project Root Directory is `mcp`, so runtime artifacts must live there.
+ * The bundle inlines ../lib so the deploy does not need the repo root on Vercel.
  */
 import { mkdirSync, unlinkSync, existsSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -12,81 +11,103 @@ import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const API = join(ROOT, 'api');
+const API = join(ROOT, 'mcp/api');
 mkdirSync(API, { recursive: true });
 
-const targets = [
-  {
-    entry: join(ROOT, 'mcp/entries/mcp.ts'),
-    bundle: '_mcp.bundle.js',
-    wrapper: 'mcp.js',
-    maxDuration: 60,
+const bundleName = '_bundle.js';
+const bundlePath = join(API, bundleName);
+
+await esbuild.build({
+  entryPoints: [join(ROOT, 'mcp/vercel-handler.ts')],
+  outfile: bundlePath,
+  bundle: true,
+  platform: 'node',
+  target: 'node20',
+  format: 'esm',
+  sourcemap: false,
+  logLevel: 'info',
+  banner: {
+    js: `import { createRequire as __anomaCreateRequire } from 'module'; const require = __anomaCreateRequire(import.meta.url);`,
   },
-  {
-    entry: join(ROOT, 'mcp/entries/oauth-protected-resource.ts'),
-    bundle: '_oauth.bundle.js',
-    wrapper: 'oauth-protected-resource.js',
-    maxDuration: 30,
-  },
+});
+
+const wrappers = [
+  { file: 'mcp.js', exportName: 'mcp', maxDuration: 60 },
+  { file: 'oauth-protected-resource.js', exportName: 'oauthProtectedResource', maxDuration: 30 },
 ];
 
-for (const t of targets) {
-  const bundlePath = join(API, t.bundle);
-  await esbuild.build({
-    entryPoints: [t.entry],
-    outfile: bundlePath,
-    bundle: true,
-    platform: 'node',
-    target: 'node20',
-    format: 'esm',
-    sourcemap: false,
-    logLevel: 'info',
-    banner: {
-      js: `import { createRequire as __anomaCreateRequire } from 'module'; const require = __anomaCreateRequire(import.meta.url);`,
-    },
-  });
+const healthSrc = `/**
+ * Ultra-minimal health endpoint (ESM).
+ * Kept dependency-free so /health stays up even if the MCP bundle fails to build.
+ */
+export default function handler(req, res) {
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, mcp-session-id, Last-Event-ID, mcp-protocol-version',
+    );
+    res.end();
+    return;
+  }
 
-  writeFileSync(
-    join(API, t.wrapper),
-    `import handler from './${t.bundle}';
-export default handler;
-export const config = { api: { bodyParser: false }, maxDuration: ${t.maxDuration} };
-`,
-  );
-  console.log('wrote', bundlePath, '→', t.wrapper);
-}
-
-const healthPath = join(API, 'health.js');
-if (!existsSync(healthPath)) {
-  writeFileSync(
-    healthPath,
-    `export default function handler(req, res) {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({ ok: true, name: 'anomalia-mcp', mcp: '/mcp' }));
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.end(
+    JSON.stringify({
+      ok: true,
+      name: 'anomalia-mcp',
+      transport: 'streamable-http',
+      mcp: '/mcp',
+    }),
+  );
 }
+
 export const config = { maxDuration: 10 };
+`;
+
+for (const w of wrappers) {
+  writeFileSync(
+    join(API, w.file),
+    `import { ${w.exportName} as handler } from './${bundleName}';
+export default handler;
+export const config = { api: { bodyParser: false }, maxDuration: ${w.maxDuration} };
 `,
   );
-  console.log('wrote fallback', healthPath);
 }
+
+writeFileSync(join(API, 'health.js'), healthSrc);
+
+// Keep a copy at repo-root api/health.js for local reference / if Root Directory is ever ".".
+mkdirSync(join(ROOT, 'api'), { recursive: true });
+writeFileSync(join(ROOT, 'api', 'health.js'), healthSrc);
 
 for (const stale of [
   '_vercel.ts',
+  '_mcp.bundle.js',
+  '_oauth.bundle.js',
   '_bundle.cjs',
   '_bundle.cjs.map',
   'health.ts',
   'health.cjs',
   'mcp.ts',
   'mcp.cjs',
+  'mcp.js',
   'oauth-protected-resource.ts',
   'oauth-protected-resource.cjs',
+  'oauth-protected-resource.js',
+  '_bundle.js',
 ]) {
-  const p = join(API, stale);
+  // Only scrub stale generated files from repo-root api/ (not mcp/api live outputs).
+  if (stale === 'health.js') continue;
+  const p = join(ROOT, 'api', stale);
   if (existsSync(p)) {
     unlinkSync(p);
     console.log('removed', p);
   }
 }
 
-console.log('Done. api/health.js + api/mcp.js + api/oauth-protected-resource.js');
+console.log('Done. Deploy path: mcp/api/* (Vercel Root Directory = mcp)');

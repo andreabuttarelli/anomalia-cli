@@ -1,7 +1,8 @@
 /**
- * Ultra-minimal health endpoint — CommonJS (.cjs) so package.json "type":"module" cannot break it.
+ * Ultra-minimal health endpoint (ESM).
+ * Kept dependency-free so /health stays up even if the MCP bundle fails to build.
  */
-module.exports = function handler(req, res) {
+export default function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,6 +26,6 @@ module.exports = function handler(req, res) {
       mcp: '/mcp',
     }),
   );
-};
+}
 
-module.exports.config = { maxDuration: 10 };
+export const config = { maxDuration: 10 };

@@ -66,18 +66,20 @@ If the client cannot send OAuth Bearer yet, use [mcp-remote](https://www.npmjs.c
 
 ## Deploy on Vercel (`mcp.anomalia.so`)
 
-Vercel deploys **Node serverless** `api/*.js` files. `vercel-build` runs esbuild to bundle the
-MCP handler (Bun-style `.ts` imports are not left for `@vercel/node` to resolve). `api/health.js`
-is a zero-dependency file so `/health` stays up even if the MCP bundle fails.
+Vercel deploys **Node serverless** `api/*.js` files (`framework: null` in `vercel.json`).
+
+- `api/health.js` — zero-dependency ESM so `/health` stays up even if the MCP bundle fails
+- `vercel-build` runs `node scripts/build-vercel.mjs` (esbuild) to emit `api/mcp.js` and
+  `api/oauth-protected-resource.js` (Bun-style `.ts` imports are never left for `@vercel/node`)
 
 1. Import the GitHub repo in Vercel (Root Directory = repo root).
-2. Framework preset: **Other**.
+2. Framework preset: **Other** (already pinned via `vercel.json`).
 3. Attach domain `mcp.anomalia.so`.
 4. Set env vars (Observability below).
 5. Redeploy after each merge to `main`.
 
 ```bash
-bun run vercel-build   # locally: writes api/_bundle.cjs + api/mcp.js
+npm run vercel-build   # or: bun run vercel-build
 npx vercel --prod
 ```
 

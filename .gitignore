@@ -5,7 +5,10 @@ dist/
 !.env.example
 .DS_Store
 *.log
+api/_mcp.bundle.js
+api/_oauth.bundle.js
+api/mcp.js
+api/oauth-protected-resource.js
 api/_bundle.cjs
 api/_bundle.cjs.map
-api/mcp.cjs
-api/oauth-protected-resource.cjs
+api/*.cjs

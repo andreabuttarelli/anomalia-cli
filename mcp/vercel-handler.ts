@@ -1,5 +1,5 @@
 /**
- * Vercel Node handler source — bundled by scripts/build-vercel.ts into api/*.js
+ * Vercel Node handler source — bundled by scripts/build-vercel.mjs into api/*.js
  * so @vercel/node never has to resolve Bun-style `.ts` import specifiers at runtime.
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';

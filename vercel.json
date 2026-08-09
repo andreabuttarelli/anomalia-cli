@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "headers": [
     {
       "source": "/(.*)",
@@ -16,6 +17,18 @@
       ]
     }
   ],
+  "functions": {
+    "api/mcp.js": {
+      "maxDuration": 60,
+      "memory": 1024,
+      "includeFiles": "api/_mcp.bundle.js"
+    },
+    "api/oauth-protected-resource.js": {
+      "maxDuration": 30,
+      "includeFiles": "api/_oauth.bundle.js"
+    },
+    "api/health.js": { "maxDuration": 10 }
+  },
   "rewrites": [
     { "source": "/mcp", "destination": "/api/mcp" },
     { "source": "/health", "destination": "/api/health" },

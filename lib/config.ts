@@ -20,6 +20,13 @@ let resolved = false;
 export async function loadEnv() {
   if (resolved) return;
 
+  // On Vercel / remote MCP, never probe localhost.
+  if (process.env.VERCEL || process.env.MCP_REQUIRE_BEARER === '1') {
+    process.env.PUBLIC_APP_URL ??= PRODUCTION_URL;
+    resolved = true;
+    return;
+  }
+
   // If user explicitly set PUBLIC_APP_URL, use it
   if (process.env.PUBLIC_APP_URL && process.env.PUBLIC_APP_URL !== PRODUCTION_URL) {
     resolved = true;
@@ -28,7 +35,7 @@ export async function loadEnv() {
 
   // Auto-detect: try localhost first (dev server), fall back to production
   try {
-    const res = await fetch(`${LOCAL_URL}/api/v1/brands`, {
+    await fetch(`${LOCAL_URL}/api/v1/brands`, {
       method: 'HEAD',
       signal: AbortSignal.timeout(1000),
     });

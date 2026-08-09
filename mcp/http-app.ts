@@ -1,6 +1,4 @@
-import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { loadEnv } from '../lib/config.ts';
-import { createAnomaliaMcpServer } from './server.ts';
 import { runWithRequestAuth } from './context.ts';
 import { extractBearer, toAuthInfo, verifyBearerToken } from './verify-token.ts';
 
@@ -102,6 +100,11 @@ export async function handleMcpFetch(req: Request): Promise<Response> {
   }
 
   const run = async (): Promise<Response> => {
+    const { WebStandardStreamableHTTPServerTransport } = await import(
+      '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
+    );
+    const { createAnomaliaMcpServer } = await import('./server.ts');
+
     const server = createAnomaliaMcpServer();
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,

@@ -70,7 +70,7 @@ for (const target of selectedTargets) {
     '--compile',
     '--minify',
     '--target', target.target,
-    join(ROOT, 'index.ts'),
+    join(ROOT, 'cli.ts'),
     '--outfile', outPath,
   ], {
     cwd: ROOT,

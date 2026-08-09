@@ -66,13 +66,13 @@ If the client cannot send OAuth Bearer yet, use [mcp-remote](https://www.npmjs.c
 
 ## Deploy on Vercel (`mcp.anomalia.so`)
 
-Vercel serves the Hono app in `app.ts` (Bun runtime) — **not** the CLI `index.ts`.
+Vercel deploys **Node serverless** functions under `api/` (rewrites `/mcp` → `/api/mcp`). The CLI entry is `cli.ts` (not `index.ts`) so Vercel does not treat the repo as a Bun backend app.
 
 1. Import the GitHub repo in Vercel (Root Directory = repo root).
-2. Framework: leave auto / Other. `vercel.json` sets `"bunVersion": "1.x"`.
+2. Framework preset: **Other**.
 3. Build uses `vercel-build` (skips the CLI binary compile).
-4. Attach domain `mcp.anomalia.so`.
-5. Optional env: `PUBLIC_APP_URL=https://anomalia.so`, `MCP_PUBLIC_URL=https://mcp.anomalia.so`.
+4. Attach domain `mcp.anomalia.so` (DNS CNAME/A as Vercel instructs).
+5. Set env vars (see Observability below).
 6. On Vercel, `VERCEL=1` forces Bearer auth (no session-file fallback).
 
 ```bash
@@ -80,6 +80,26 @@ npx vercel --prod
 ```
 
 Endpoints after deploy: `/mcp`, `/health`, `/.well-known/oauth-protected-resource`.
+
+## Observability (Sentry + Supabase)
+
+Errors and structured logs from the MCP HTTP path go to:
+
+1. **Vercel function logs** (stderr JSON lines)
+2. **Sentry** — when `SENTRY_DSN` is set
+3. **Supabase `public.mcp_logs`** — when `SUPABASE_SERVICE_ROLE_KEY` (+ `PUBLIC_SUPABASE_URL`) is set
+
+| Env | Required for | Notes |
+|-----|----------------|-------|
+| `SENTRY_DSN` | Sentry | Create a Sentry project; paste DSN in Vercel |
+| `SENTRY_ENVIRONMENT` | optional | defaults to `VERCEL_ENV` |
+| `SENTRY_TRACES_SAMPLE_RATE` | optional | default `0.1` |
+| `PUBLIC_SUPABASE_URL` | Supabase logs | already defaulted in CLI config for Anomalia |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase inserts | **server-only** — never expose to browsers |
+| `MCP_PUBLIC_URL` | OAuth metadata | e.g. `https://mcp.anomalia.so` |
+| `PUBLIC_APP_URL` | API + OAuth AS | default `https://anomalia.so` |
+
+Table `mcp_logs`: level, event, message, path, tool, user_id, status, duration, stack, context. RLS: service role write; users can `select` their own rows.
 
 ## Tool map
 
@@ -106,4 +126,4 @@ bun run typecheck
 npx @modelcontextprotocol/inspector bun run mcp/index.ts
 ```
 
-Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` + `app.ts` (HTTP / Vercel) → `mcp/server.ts` → `lib/api.ts` + auth.
+Architecture: `mcp/index.ts` (stdio) / `mcp/http.ts` + `api/*` (HTTP / Vercel) → `mcp/http-router.ts` → `mcp/http-app.ts` → `mcp/server.ts` → `lib/api.ts` + auth. Observability: `mcp/observability.ts`.

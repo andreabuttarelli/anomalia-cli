@@ -265,7 +265,7 @@ fi
 
 echo ""
 echo "  Ora puoi dire alla tua AI:"
-echo "  ${BOLD}\"Usa Anomalia MCP (o la CLI) per elencare i brand\"${NC}"
+echo -e "  ${BOLD}\"Usa Anomalia MCP (o la CLI) per elencare i brand\"${NC}"
 echo ""
 echo "  Cursor Agent Skill: skills/anomalia/SKILL.md"
 echo "  Docs MCP: https://github.com/andreabuttarelli/anomalia-cli/blob/main/docs/mcp.md"

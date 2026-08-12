@@ -12,7 +12,7 @@ export function registerWebTools(server: McpServer) {
       title: 'SEO overview',
       description: 'Tech score, search performance, SEO grade and initiatives.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getSeo(token, slug)),
   );
@@ -29,7 +29,7 @@ export function registerWebTools(server: McpServer) {
         initiativeId: z.string().optional(),
         guidance: z.string().optional().describe('Optional guidance when action=more'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, action, initiativeId, guidance }) =>
       withAuth((token) => api.seoAction(token, slug, { action, initiativeId, guidance })),
@@ -41,7 +41,7 @@ export function registerWebTools(server: McpServer) {
       title: 'GEO overview',
       description: 'AI visibility: share of voice, citations, ready fixes.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getGeo(token, slug)),
   );
@@ -55,7 +55,7 @@ export function registerWebTools(server: McpServer) {
         slug,
         action: z.enum(['audit', 'fix']),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, action }) => withAuth((token) => api.geoAction(token, slug, action)),
   );
@@ -66,7 +66,7 @@ export function registerWebTools(server: McpServer) {
       title: 'Keywords',
       description: 'Keyword strategy: volume, difficulty, opportunity, action.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getKeywords(token, slug)),
   );
@@ -77,7 +77,7 @@ export function registerWebTools(server: McpServer) {
       title: 'Refresh keywords',
       description: 'Regenerate keyword research for the brand.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.refreshKeywords(token, slug)),
   );
@@ -91,7 +91,7 @@ export function registerWebTools(server: McpServer) {
         slug,
         status: z.enum(['draft', 'scheduled', 'published', 'all']).optional(),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, status }) => withAuth((token) => api.getWeb(token, slug, status)),
   );
@@ -105,7 +105,7 @@ export function registerWebTools(server: McpServer) {
         slug,
         topic: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, topic }) =>
       withAuth((token) => api.webAction(token, slug, { action: 'generate', topic })),
@@ -120,7 +120,7 @@ export function registerWebTools(server: McpServer) {
         slug,
         id: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -141,7 +141,7 @@ export function registerWebTools(server: McpServer) {
         slug,
         id: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: true },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -162,7 +162,7 @@ export function registerWebTools(server: McpServer) {
         slug,
         id: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: true },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -183,7 +183,7 @@ export function registerWebTools(server: McpServer) {
         slug,
         id: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -201,7 +201,7 @@ export function registerWebTools(server: McpServer) {
       title: 'Ads overview',
       description: 'Ad campaigns summary, candidates, and connected ad accounts.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getAds(token, slug)),
   );
@@ -218,7 +218,7 @@ export function registerWebTools(server: McpServer) {
         campaignId: z.string().optional(),
         extra: z.record(z.string(), z.unknown()).optional().describe('Additional action payload fields'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: true },
     },
     async ({ slug, action, campaignId, extra }) =>
       withAuth((token) =>
@@ -236,7 +236,7 @@ export function registerWebTools(server: McpServer) {
         slug,
         message: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false },
     },
     async ({ slug, message }) =>
       withAuth(async (token) => {

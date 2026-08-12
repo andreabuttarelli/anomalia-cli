@@ -211,7 +211,7 @@ export function registerWebTools(server: McpServer) {
     {
       title: 'Ads action',
       description:
-        'Run an ads action. Common actions: sync, propose, create, reject, pause. Pass extra fields as needed (campaignId, etc.).',
+        'Run an ads action. Common actions: sync, propose, create, reject, pause, resume, toggle, duplicate, delete. Pass campaignId; for a single creative add adId (and next active|paused for toggle). duplicate creates a paused copy as a new proposal; approve it to launch. Pass extra fields as needed.',
       inputSchema: z.object({
         slug,
         action: z.string().min(1),

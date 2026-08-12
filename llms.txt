@@ -89,6 +89,20 @@ Editing a SCHEDULED post re-syncs it to Zernio automatically, so what goes out i
 
 Note: `--id` accepts the short prefix printed in the tables.
 
+### Ads
+- `anomalia ads <slug>` — Ad campaigns, spend, metrics + boost candidates
+- `anomalia ads <slug> --sync` — Sync ad accounts + metrics
+- `anomalia ads <slug> --propose` — Propose boosts from top organic posts
+- `anomalia ads <slug> --create --name "..." --headline "..." [--platform metaads|googleads] [--budget N]` — Create a standalone proposal
+- `anomalia ads <slug> --approve <id> [--budget N] [--goal ...]` — Approve + launch on Zernio
+- `anomalia ads <slug> --pause <id>` — Pause a campaign (all its creatives)
+- `anomalia ads <slug> --resume <id>` — Resume a paused campaign
+- `anomalia ads <slug> --pause <id> --ad <adId>` — Pause one creative only (A/B)
+- `anomalia ads <slug> --resume <id> --ad <adId>` — Resume one creative only
+- `anomalia ads <slug> --duplicate <id>` — Duplicate a campaign (paused copy as new proposal)
+- `anomalia ads <slug> --delete <id>` — Delete a campaign on the platform (history kept)
+- `anomalia ads <slug> --reject <id>` — Reject a proposal
+
 ### Analytics
 - `anomalia analytics <slug>` — View analytics
 - `anomalia calendar <slug> [--month YYYY-MM]` — View calendar

@@ -467,6 +467,8 @@ export const api = {
       accounts?: number;
       metrics?: number;
       id?: string;
+      next?: 'active' | 'paused';
+      copiedCampaignId?: string;
     }>(`/api/v1/brands/${slug}/ads`, t, body),
 
   // ── Chat ──────────────────────────────────────────────────────────────

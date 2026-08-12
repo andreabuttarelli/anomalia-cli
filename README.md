@@ -59,6 +59,7 @@ prefixes error instead of guessing.
 | Planning | `plan`, `weekly-plan`, `calendar`, `gtm` |
 | Brand | `studio`, `voice`, `people`, `products` |
 | Web | `seo`, `geo`, `keywords`, `web` |
+| Ads | `ads` — campaigns, spend, boost proposals, duplicate/delete (`--sync`, `--propose`, `--create`, `--approve`, `--pause`, `--resume`, `--duplicate`, `--delete`, `--reject`, `--ad` per singola creatività) |
 | Insight | `dashboard`, `status`, `analytics` |
 | AI | `ai --message "..."` — natural language, full read/write access |
 

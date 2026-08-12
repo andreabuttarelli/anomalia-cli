@@ -65186,6 +65186,10 @@ var init_api2 = __esm({
       // ── Ads ───────────────────────────────────────────────────────────────
       getAds: (t, slug5) => get2(`/api/v1/brands/${slug5}/ads`, t),
       adsAction: (t, slug5, body) => post2(`/api/v1/brands/${slug5}/ads`, t, body),
+      /** Run competitor-ad remix agent (harvest → vision → structured briefs). */
+      adsRemix: (t, slug5) => post2(`/api/v1/brands/${slug5}/ads/remix`, t),
+      /** Last remix briefs for the brand (no re-run). */
+      getAdsRemix: (t, slug5) => get2(`/api/v1/brands/${slug5}/ads/remix`, t),
       // ── Chat ──────────────────────────────────────────────────────────────
       chat: async (t, slug5, message) => {
         const res = await fetch(`${appUrl()}/app/${slug5}/chat`, {
@@ -65799,6 +65803,7 @@ var init_open = __esm({
 
 // lib/auth.ts
 import { existsSync, mkdirSync, readFileSync as readFileSync2, writeFileSync, unlinkSync } from "fs";
+import { createServer } from "node:http";
 import { homedir } from "os";
 import { join as join4 } from "path";
 async function loadSession() {
@@ -65846,6 +65851,25 @@ function anonClient2() {
     { auth: { persistSession: false } }
   );
 }
+function readJsonBody(req) {
+  return new Promise((resolve2, reject) => {
+    const chunks = [];
+    req.on("data", (c) => chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c)));
+    req.on("end", () => {
+      try {
+        const raw = Buffer.concat(chunks).toString("utf8");
+        resolve2(raw ? JSON.parse(raw) : {});
+      } catch (e) {
+        reject(e);
+      }
+    });
+    req.on("error", reject);
+  });
+}
+function send(res, status, body, headers = {}) {
+  res.writeHead(status, { "content-length": Buffer.byteLength(body), ...headers });
+  res.end(body);
+}
 async function startBrowserLogin(onStatus) {
   const port = 54320 + Math.floor(Math.random() * 60);
   const state = crypto.randomUUID();
@@ -65862,41 +65886,45 @@ async function startBrowserLogin(onStatus) {
     "access-control-allow-methods": "POST, OPTIONS",
     "access-control-allow-headers": "Content-Type"
   };
-  const server = Bun.serve({
-    port,
-    async fetch(req) {
-      const url2 = new URL(req.url);
-      if (req.method === "OPTIONS") {
-        return new Response(null, { status: 204, headers: corsHeaders });
-      }
-      if (url2.pathname === "/session" && req.method === "POST") {
-        try {
-          const body = await req.json();
-          if (body.state !== state) {
-            return new Response("Invalid state", { status: 400, headers: corsHeaders });
-          }
-          const sb = createClient(
-            process.env.PUBLIC_SUPABASE_URL,
-            process.env.PUBLIC_SUPABASE_ANON_KEY,
-            { auth: { persistSession: false } }
-          );
-          const { data } = await sb.auth.getUser(body.access_token);
-          const stored = {
-            access_token: body.access_token,
-            refresh_token: body.refresh_token,
-            expires_at: body.expires_at || Math.floor(Date.now() / 1e3) + 3600,
-            user: { id: data.user.id, email: data.user.email }
-          };
-          saveSession(stored);
-          resolveSession(stored);
-          return new Response("OK", { headers: corsHeaders });
-        } catch (e) {
-          rejectSession(new Error(String(e)));
-          return new Response("Error", { status: 500, headers: corsHeaders });
-        }
-      }
-      return new Response("Not found", { status: 404 });
+  const server = createServer(async (req, res) => {
+    const url2 = new URL(req.url ?? "/", `http://127.0.0.1:${port}`);
+    if (req.method === "OPTIONS") {
+      send(res, 204, "", corsHeaders);
+      return;
     }
+    if (url2.pathname === "/session" && req.method === "POST") {
+      try {
+        const body = await readJsonBody(req);
+        if (body.state !== state) {
+          send(res, 400, "Invalid state", corsHeaders);
+          return;
+        }
+        const sb = createClient(
+          process.env.PUBLIC_SUPABASE_URL,
+          process.env.PUBLIC_SUPABASE_ANON_KEY,
+          { auth: { persistSession: false } }
+        );
+        const { data } = await sb.auth.getUser(body.access_token);
+        const stored = {
+          access_token: body.access_token,
+          refresh_token: body.refresh_token,
+          expires_at: body.expires_at || Math.floor(Date.now() / 1e3) + 3600,
+          user: { id: data.user.id, email: data.user.email }
+        };
+        saveSession(stored);
+        resolveSession(stored);
+        send(res, 200, "OK", corsHeaders);
+      } catch (e) {
+        rejectSession(new Error(String(e)));
+        send(res, 500, "Error", corsHeaders);
+      }
+      return;
+    }
+    send(res, 404, "Not found");
+  });
+  await new Promise((resolve2, reject) => {
+    server.once("error", reject);
+    server.listen(port, "127.0.0.1", () => resolve2());
   });
   const loginUrl = `${appUrl2}/login?cli_port=${port}&cli_state=${state}`;
   onStatus("Apertura browser per il login\u2026");
@@ -65910,7 +65938,7 @@ async function startBrowserLogin(onStatus) {
     const session = await Promise.race([settled, timeout]);
     return session;
   } finally {
-    server.stop(true);
+    await new Promise((resolve2) => server.close(() => resolve2()));
   }
 }
 var CONFIG_DIR, SESSION_FILE;
@@ -67021,7 +67049,7 @@ function registerWebTools(server) {
     "ads_action",
     {
       title: "Ads action",
-      description: "Run an ads action. Common actions: sync, propose, create, reject, pause. Pass extra fields as needed (campaignId, etc.).",
+      description: "Run an ads action. Common actions: sync, propose, create, reject, pause, resume, toggle, duplicate, delete. Pass campaignId; for a single creative add adId (and next active|paused for toggle). duplicate creates a paused copy as a new proposal; approve it to launch. Pass extra fields as needed.",
       inputSchema: external_exports.object({
         slug: slug4,
         action: external_exports.string().min(1),
@@ -67033,6 +67061,16 @@ function registerWebTools(server) {
     async ({ slug: slug5, action, campaignId, extra }) => withAuth(
       (token) => api.adsAction(token, slug5, { action, campaignId, ...extra ?? {} })
     )
+  );
+  server.registerTool(
+    "ads_remix",
+    {
+      title: "Ads remix",
+      description: "Harvest competitor/trending ads, analyze with vision, and return ranked remix briefs in brand voice (hook, headline, body, CTA, product, strategy, visualPrompt). Replaces previous briefs. Costs credits.",
+      inputSchema: external_exports.object({ slug: slug4 }),
+      annotations: { readOnlyHint: false, destructiveHint: false }
+    },
+    async ({ slug: slug5 }) => withAuth((token) => api.adsRemix(token, slug5))
   );
   server.registerTool(
     "chat",
@@ -72333,7 +72371,7 @@ function createTransport(options, makeRequest, buffer = makePromiseBuffer(
 )) {
   let rateLimits = {};
   const flush2 = (timeout) => buffer.drain(timeout);
-  function send(envelope) {
+  function send2(envelope) {
     const filteredEnvelopeItems = [];
     forEachEnvelopeItem(envelope, (item, type) => {
       const dataCategory = envelopeItemTypeToDataCategory(type);
@@ -72391,7 +72429,7 @@ function createTransport(options, makeRequest, buffer = makePromiseBuffer(
     );
   }
   return {
-    send,
+    send: send2,
     flush: flush2
   };
 }
@@ -85382,7 +85420,7 @@ var FastifyInstrumentationV3 = class extends import_instrumentation4.Instrumenta
     const instrumentation = this;
     this._diag.debug("Patching fastify reply.send function");
     return function patchSend(original) {
-      return function send(...args) {
+      return function send2(...args) {
         const maybeError = args[0];
         if (!instrumentation.isEnabled()) {
           return original.apply(this, args);
@@ -88346,7 +88384,7 @@ var KafkaJsInstrumentation = class extends import_instrumentation9.Instrumentati
         const transactionPromise = original.apply(this, args);
         transactionPromise.then((transaction2) => {
           const originalSend = transaction2.send;
-          transaction2.send = function send(...args2) {
+          transaction2.send = function send2(...args2) {
             return withActiveSpan(transactionSpan, () => {
               const patched = instrumentation._getSendPatch()(originalSend);
               return patched.apply(this, args2).catch((err) => {
@@ -88412,7 +88450,7 @@ var KafkaJsInstrumentation = class extends import_instrumentation9.Instrumentati
   }
   _getSendPatch() {
     return (original) => {
-      return function send(...args) {
+      return function send2(...args) {
         const record2 = args[0];
         const spans = record2.messages.map((message) => {
           return startProducerSpan(record2.topic, message);

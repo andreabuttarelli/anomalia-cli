@@ -203,6 +203,27 @@ export type WebArticle = {
   source_initiative_id: string | null; created_at: string;
 };
 
+/** Structured ad remix brief from POST/GET /ads/remix (max 5, ranked by impact). */
+export type AdsRemixBrief = {
+  rank: number;
+  strategy: string;
+  keep?: string | null;
+  change?: string | null;
+  hook: string;
+  headline: string;
+  body?: string | null;
+  cta?: string | null;
+  product?: string | null;
+  visualPrompt?: string | null;
+  visual_prompt?: string | null;
+};
+
+export type AdsRemixResult = {
+  ok?: boolean;
+  error?: string;
+  briefs: AdsRemixBrief[];
+};
+
 /** Every scalar field the post editor can write. `media_url: null` clears the image (text-only). */
 export type PostPatch = {
   caption?: string; image_prompt?: string; platforms?: string[]; content_type?: string;
@@ -470,6 +491,14 @@ export const api = {
       next?: 'active' | 'paused';
       copiedCampaignId?: string;
     }>(`/api/v1/brands/${slug}/ads`, t, body),
+
+  /** Run competitor-ad remix agent (harvest → vision → structured briefs). */
+  adsRemix: (t: string, slug: string) =>
+    post<AdsRemixResult>(`/api/v1/brands/${slug}/ads/remix`, t),
+
+  /** Last remix briefs for the brand (no re-run). */
+  getAdsRemix: (t: string, slug: string) =>
+    get<AdsRemixResult>(`/api/v1/brands/${slug}/ads/remix`, t),
 
   // ── Chat ──────────────────────────────────────────────────────────────
 

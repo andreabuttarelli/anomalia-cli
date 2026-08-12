@@ -227,6 +227,18 @@ export function registerWebTools(server: McpServer) {
   );
 
   server.registerTool(
+    'ads_remix',
+    {
+      title: 'Ads remix',
+      description:
+        'Harvest competitor/trending ads, analyze with vision, and return ranked remix briefs in brand voice (hook, headline, body, CTA, product, strategy, visualPrompt). Replaces previous briefs. Costs credits.',
+      inputSchema: z.object({ slug }),
+      annotations: { readOnlyHint: false, destructiveHint: false },
+    },
+    async ({ slug }) => withAuth((token) => api.adsRemix(token, slug)),
+  );
+
+  server.registerTool(
     'chat',
     {
       title: 'Anomalia AI chat',

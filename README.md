@@ -116,6 +116,10 @@ Remote: `https://mcp.anomalia.so/mcp` (Bearer JWT required). Health: `GET /healt
 }
 ```
 
+If Connect fails with `Not an https or loopback URI: cursor://…`, your Cursor build is still
+using the custom-scheme OAuth callback — use **stdio** above, update Cursor (loopback
+`http://localhost:8787/callback`), or see [`docs/mcp.md`](docs/mcp.md#cursor--remote-http-oauth).
+
 - Local stdio: `login` tool or existing `anomalia login` → `~/.config/anomalia/session.json`
 - Remote HTTP: `Authorization: Bearer <access_token>` (401 without it is expected)
 

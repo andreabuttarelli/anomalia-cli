@@ -121,7 +121,7 @@ Remote: `https://mcp.anomalia.so/mcp` (Bearer JWT required). Health: `GET /healt
 
 ---
 
-## 3. Agent Skill
+## 3. Agent Skill & plugins
 
 Publishable [Agent Skill](https://agentskills.io) for Cursor, Claude, skills.sh, and friends:
 
@@ -131,9 +131,24 @@ npx skills add andreabuttarelli/anomalia-cli --skill anomalia
 bash scripts/install-skill.sh --project
 ```
 
-Package: [`skills/anomalia/`](skills/anomalia/) (`SKILL.md` + `references/` for MCP setup, tool map, CLI).
+Package: [`skills/anomalia/`](skills/anomalia/) → [`plugins/anomalia/skills/anomalia/`](plugins/anomalia/) (`SKILL.md` + `references/` for MCP setup, tool map, CLI).
 
 When the skill is active, agents prefer **MCP tools** if connected, otherwise the **CLI**.
+
+### Claude Code / Codex marketplace plugin
+
+Same skill + remote MCP, packaged for plugin install and directory submit:
+
+```bash
+# Claude Code
+/plugin marketplace add andreabuttarelli/anomalia-cli
+/plugin install anomalia@anomalia
+
+# Codex
+codex plugin marketplace add andreabuttarelli/anomalia-cli
+```
+
+Submit checklist (Claude community directory + OpenAI Plugins Directory): **[`docs/plugins.md`](docs/plugins.md)**.
 
 ---
 
@@ -167,7 +182,7 @@ Skill ─┘   (guides agents to CLI or MCP)
 - CLI commands: `commands/` + `cli.ts`
 - HTTP client: `lib/api.ts` only
 - MCP: `mcp/` (reuses `lib/api.ts`, registers tools)
-- Skill: `skills/anomalia/`
+- Skill / plugins: `skills/anomalia/` → `plugins/anomalia/` (Claude + Codex marketplace manifests)
 
 ---
 

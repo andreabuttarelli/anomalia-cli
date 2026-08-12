@@ -17,12 +17,21 @@
     "anomalia": "./cli.ts",
     "anomalia-mcp": "./mcp/stdio.ts"
   },
+  "keywords": [
+    "anomalia",
+    "cli",
+    "social-media",
+    "mcp",
+    "content",
+    "seo"
+  ],
   "scripts": {
     "dev": "bun run cli.ts",
     "mcp": "bun run mcp/stdio.ts",
     "mcp:http": "bun run mcp/http.ts",
     "build": "bun run scripts/build.ts",
     "build:all": "bun run scripts/build.ts --all",
+    "build:npm": "bun run scripts/build-npm.ts",
     "vercel-build": "node scripts/build-vercel.mjs",
     "typecheck": "tsc --noEmit",
     "test": "bun test"

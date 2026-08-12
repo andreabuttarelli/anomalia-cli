@@ -75,6 +75,12 @@ anomalia ads <slug>                          # Campagne + metriche paid
 anomalia ads <slug> --propose                # Proposte boost dai top post
 anomalia ads <slug> --remix                  # Remix competitor ads → brief creativi
 anomalia ads <slug> --approve <id> [--budget N]
+anomalia ads <slug> --pause <id>             # Pausa campagna (tutte le creatività)
+anomalia ads <slug> --resume <id>            # Riattiva campagna
+anomalia ads <slug> --pause <id> --ad <adId> # Pausa UNA creatività (A/B)
+anomalia ads <slug> --resume <id> --ad <adId>
+anomalia ads <slug> --duplicate <id>          # Copia in pausa → nuova proposta
+anomalia ads <slug> --delete <id>             # Elimina sulla piattaforma (storico ok)
 anomalia ads <slug> --create --name "..." --headline "..." [--platform metaads|googleads]
 ```
 

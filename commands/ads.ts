@@ -10,6 +10,10 @@ export async function cmdAds(
     approve?: string;
     reject?: string;
     pause?: string;
+    resume?: string;
+    duplicate?: string;
+    delete?: string;
+    ad?: string;
     sync?: boolean;
     budget?: string;
     create?: boolean;
@@ -93,15 +97,61 @@ export async function cmdAds(
     return;
   }
 
+  if (opts.pause || opts.resume) {
+    const next = opts.pause ? 'paused' : 'active';
+    const id = opts.pause ?? opts.resume!;
+    const spinner = ora(
+      opts.ad
+        ? `${opts.pause ? 'Pausing' : 'Resuming'} creative ${opts.ad}…`
+        : `${opts.pause ? 'Pausing' : 'Resuming'} campaign ${id}…`
+    ).start();
+    try {
+      const r = await api.adsAction(token, slug, {
+        action: 'toggle',
+        campaignId: id,
+        ...(opts.ad ? { adId: opts.ad } : {}),
+        next
+      });
+      spinner.stop();
+      ok(opts.ad ? `Creative ${opts.ad} → ${r.next}` : `Campaign ${id} → ${r.next}`);
+    } catch (e) {
+      spinner.fail(String(e));
+      process.exit(1);
+    }
+    return;
+  }
+
   if (opts.reject) {
     await api.adsAction(token, slug, { action: 'reject', campaignId: opts.reject });
     ok('Rejected');
     return;
   }
 
-  if (opts.pause) {
-    await api.adsAction(token, slug, { action: 'pause', campaignId: opts.pause });
-    ok('Paused');
+  if (opts.duplicate) {
+    const spinner = ora(`Duplicating campaign ${opts.duplicate}…`).start();
+    try {
+      const r = await api.adsAction(token, slug, { action: 'duplicate', campaignId: opts.duplicate });
+      spinner.stop();
+      ok(
+        `Copy ${r.id} (${r.copiedCampaignId}) created paused — approve with: anomalia ads ${slug} --approve ${r.id}`
+      );
+    } catch (e) {
+      spinner.fail(String(e));
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (opts.delete) {
+    const spinner = ora(`Deleting campaign ${opts.delete}…`).start();
+    try {
+      await api.adsAction(token, slug, { action: 'delete', campaignId: opts.delete });
+      spinner.stop();
+      ok('Deleted (cancelled on platform + history kept)');
+    } catch (e) {
+      spinner.fail(String(e));
+      process.exit(1);
+    }
     return;
   }
 

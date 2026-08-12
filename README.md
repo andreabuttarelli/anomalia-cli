@@ -1,6 +1,10 @@
-# Anomalia CLI · MCP · Skill
+# Anomalia CLI — Social Media AI Automation CLI, MCP Server & Agent Skill
 
-Client tooling for [Anomalia](https://anomalia.so) — the social media AI autopilot.
+**Automate your social media from the terminal.** [Anomalia](https://anomalia.so) is the social
+media AI autopilot that plans, writes, designs and publishes posts, blog articles and SEO/GEO
+audits on autopilot. This repository is its command-line client, [MCP server](docs/mcp.md)
+(Model Context Protocol — `stdio` + HTTP) and agent skill: everything you need to run social
+media automation, content generation and approval workflows from a terminal or an AI agent.
 
 This repository ships **three ways** to drive the same product (same OAuth, same API, **no static tokens**):
 
@@ -13,8 +17,9 @@ This repository ships **three ways** to drive the same product (same OAuth, same
 > **You need an Anomalia account.** This is a client, not a standalone tool: every call talks to
 > the Anomalia API over HTTPS. Without an account there is nothing to drive.
 
-Plan and approve posts, edit a carousel slide by slide, turn a post into a video, run SEO and GEO
-audits, manage the blog — from the terminal **or** from an AI agent.
+With the Anomalia CLI you can automate social media posting, approve AI-generated content in one
+tap, edit a carousel slide by slide, turn a post into a video, run SEO and GEO audits, and manage
+your blog — from the terminal **or** from an AI agent like Cursor or Claude.
 
 ```text
 ┌─────────────┐   ┌─────────────┐   ┌──────────────────┐
@@ -32,12 +37,43 @@ audits, manage the blog — from the terminal **or** from an AI agent.
 
 ## 1. CLI
 
+### Install
+
+Pick one:
+
+| Method | Command | Notes |
+|--------|---------|--------|
+| **npm** | `npm install -g anomalia-cli` | Needs Node.js ≥ 20 |
+| **Homebrew** | see below | macOS / Linux, standalone binary |
+| **Installer** | see below | curl script → binary on PATH |
+| **From source** | see below | Needs [Bun](https://bun.sh) |
+
+**npm**
+
+```bash
+npm install -g anomalia-cli
+# or:  pnpm add -g anomalia-cli   /   bun add -g anomalia-cli
+anomalia login
+```
+
+**Homebrew**
+
+```bash
+brew tap andreabuttarelli/anomalia-cli https://github.com/andreabuttarelli/anomalia-cli
+brew install anomalia
+anomalia login
+```
+
+**Installer (standalone binary)** — macOS arm64/x64 and Linux arm64/x64, no Node/Bun required:
+
 ```bash
 curl -sSL https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/scripts/install.sh | bash
 anomalia login
 ```
 
-Standalone binary for macOS (arm64/x64) and Linux (arm64/x64) — no runtime required.
+Update later with `anomalia update`, or `npm install -g anomalia-cli@latest` / `brew upgrade anomalia` depending on how you installed. More detail: [`docs/distribute.md`](docs/distribute.md).
+
+### Quick start
 
 ```bash
 anomalia brands
@@ -112,12 +148,16 @@ Remote: `https://mcp.anomalia.so/mcp` (Bearer JWT required). Health: `GET /healt
 }
 ```
 
+If Connect fails with `Not an https or loopback URI: cursor://…`, your Cursor build is still
+using the custom-scheme OAuth callback — use **stdio** above, update Cursor (loopback
+`http://localhost:8787/callback`), or see [`docs/mcp.md`](docs/mcp.md#cursor--remote-http-oauth).
+
 - Local stdio: `login` tool or existing `anomalia login` → `~/.config/anomalia/session.json`
 - Remote HTTP: `Authorization: Bearer <access_token>` (401 without it is expected)
 
 ---
 
-## 3. Agent Skill
+## 3. Agent Skill & plugins
 
 Publishable [Agent Skill](https://agentskills.io) for Cursor, Claude, skills.sh, and friends:
 
@@ -127,9 +167,24 @@ npx skills add andreabuttarelli/anomalia-cli --skill anomalia
 bash scripts/install-skill.sh --project
 ```
 
-Package: [`skills/anomalia/`](skills/anomalia/) (`SKILL.md` + `references/` for MCP setup, tool map, CLI).
+Package: [`skills/anomalia/`](skills/anomalia/) → [`plugins/anomalia/skills/anomalia/`](plugins/anomalia/) (`SKILL.md` + `references/` for MCP setup, tool map, CLI).
 
 When the skill is active, agents prefer **MCP tools** if connected, otherwise the **CLI**.
+
+### Claude Code / Codex marketplace plugin
+
+Same skill + remote MCP, packaged for plugin install and directory submit:
+
+```bash
+# Claude Code
+/plugin marketplace add andreabuttarelli/anomalia-cli
+/plugin install anomalia@anomalia
+
+# Codex
+codex plugin marketplace add andreabuttarelli/anomalia-cli
+```
+
+Submit checklist (Claude community directory + OpenAI Plugins Directory): **[`docs/plugins.md`](docs/plugins.md)**.
 
 ---
 
@@ -163,7 +218,7 @@ Skill ─┘   (guides agents to CLI or MCP)
 - CLI commands: `commands/` + `cli.ts`
 - HTTP client: `lib/api.ts` only
 - MCP: `mcp/` (reuses `lib/api.ts`, registers tools)
-- Skill: `skills/anomalia/`
+- Skill / plugins: `skills/anomalia/` → `plugins/anomalia/` (Claude + Codex marketplace manifests)
 
 ---
 
@@ -181,8 +236,9 @@ bun run build:all         # all four targets
 bun run vercel-build      # MCP bundles under mcp/api/
 ```
 
-Releases: push a `v*` tag → CI typechecks, tests, cross-compiles binaries + `SHA256SUMS.txt` on
-the GitHub Release (`install.sh` / `anomalia update`).
+Releases: push a `v*` tag → CI typechecks, tests, cross-compiles binaries + `.tar.gz` +
+`SHA256SUMS.txt` on the GitHub Release, bumps [`Formula/anomalia.rb`](Formula/anomalia.rb),
+and publishes `anomalia-cli` to npm when `NPM_TOKEN` is set. Details: [`docs/distribute.md`](docs/distribute.md).
 
 ---
 

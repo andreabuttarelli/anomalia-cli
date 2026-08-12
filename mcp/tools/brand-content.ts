@@ -12,7 +12,7 @@ export function registerBrandTools(server: McpServer) {
       title: 'Brand dashboard',
       description: 'Full brand overview: pending count, plan, products, accounts, kit, recent autopilot runs.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getBrand(token, slug)),
   );
@@ -23,7 +23,7 @@ export function registerBrandTools(server: McpServer) {
       title: 'Brand status',
       description: 'Compact status: pending posts, quota signals, last runs.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) =>
       withAuth(async (token) => {
@@ -52,7 +52,7 @@ export function registerBrandTools(server: McpServer) {
       title: 'Analytics',
       description: 'Brand analytics: totals, engagement, recent activity.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getAnalytics(token, slug)),
   );
@@ -66,7 +66,7 @@ export function registerBrandTools(server: McpServer) {
         slug,
         month: z.string().regex(/^\d{4}-\d{2}$/).optional().describe('Month YYYY-MM'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, month }) => withAuth((token) => api.getCalendar(token, slug, month)),
   );
@@ -77,7 +77,7 @@ export function registerBrandTools(server: McpServer) {
       title: 'GTM roadmap',
       description: 'View the go-to-market roadmap for a brand.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getGtm(token, slug)),
   );
@@ -88,7 +88,7 @@ export function registerBrandTools(server: McpServer) {
       title: 'Voice rules',
       description: 'View brand voice framework and platform rules.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getVoice(token, slug)),
   );
@@ -109,7 +109,7 @@ export function registerBrandTools(server: McpServer) {
         avoid: z.array(z.string()).optional(),
         platform_instructions: z.record(z.string(), z.string()).optional(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, ...data }) => withAuth((token) => api.updateVoice(token, slug, data)),
   );
@@ -120,7 +120,7 @@ export function registerBrandTools(server: McpServer) {
       title: 'List products',
       description: 'List products in the brand catalog.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.listProducts(token, slug)),
   );
@@ -138,7 +138,7 @@ export function registerBrandTools(server: McpServer) {
           .optional()
           .describe('Optional status filter'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, status }) => withAuth((token) => api.getPosts(token, slug, status)),
   );
@@ -149,7 +149,7 @@ export function registerBrandTools(server: McpServer) {
       title: 'Approve all pending posts',
       description: 'Approve and publish all posts in pending_user status for a brand.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: true },
     },
     async ({ slug }) => withAuth((token) => api.approveAll(token, slug)),
   );
@@ -163,7 +163,7 @@ export function registerBrandTools(server: McpServer) {
         slug,
         id: z.string().min(1).describe('Post id or unambiguous prefix'),
       }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -195,7 +195,7 @@ export function registerBrandTools(server: McpServer) {
         media_url: z.string().nullable().optional().describe('Set null to clear image (text-only)'),
         platform_captions: z.record(z.string(), z.string()).nullable().optional(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id, ...patch }) =>
       withAuth(async (token) => {
@@ -214,7 +214,7 @@ export function registerBrandTools(server: McpServer) {
         slug,
         id: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: true },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -232,7 +232,7 @@ export function registerBrandTools(server: McpServer) {
         slug,
         id: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: true },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -250,7 +250,7 @@ export function registerBrandTools(server: McpServer) {
         slug,
         id: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -270,7 +270,7 @@ export function registerBrandTools(server: McpServer) {
         id: z.string().min(1),
         scheduled_for: z.string().min(1).describe('ISO datetime, e.g. 2026-06-20T10:00'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id, scheduled_for }) =>
       withAuth(async (token) => {
@@ -288,7 +288,7 @@ export function registerBrandTools(server: McpServer) {
         slug,
         id: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id }) =>
       withAuth(async (token) => {
@@ -307,7 +307,7 @@ export function registerBrandTools(server: McpServer) {
         id: z.string().min(1),
         instruction: z.string().min(1).describe('How to refine the image'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id, instruction }) =>
       withAuth(async (token) => {
@@ -330,7 +330,7 @@ export function registerBrandTools(server: McpServer) {
         index: z.number().int().min(0).describe('Slide index (0 = cover)'),
         instruction: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id, index, instruction }) =>
       withAuth(async (token) => {
@@ -352,7 +352,7 @@ export function registerBrandTools(server: McpServer) {
         id: z.string().min(1),
         order: z.array(z.number().int().min(0)).min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id, order }) =>
       withAuth(async (token) => {
@@ -377,7 +377,7 @@ export function registerBrandTools(server: McpServer) {
         script: z.string().optional(),
         instruction: z.string().optional(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, id, duration, script, instruction }) =>
       withAuth(async (token) => {

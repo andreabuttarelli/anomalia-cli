@@ -17,7 +17,7 @@ export function registerAuthTools(server: McpServer) {
       description:
         'Sign in to Anomalia via browser OAuth. Opens the login page, waits for consent, and stores a refreshable session in ~/.config/anomalia/session.json (same file as the CLI). No static API tokens.',
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false },
     },
     async () => {
       try {
@@ -71,7 +71,7 @@ export function registerAuthTools(server: McpServer) {
       title: 'Logout',
       description: 'Clear the local Anomalia OAuth session (CLI + MCP share the same session file).',
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
     },
     async () => {
       clearSession();
@@ -85,7 +85,7 @@ export function registerAuthTools(server: McpServer) {
       title: 'Who am I',
       description: 'Show the currently authenticated Anomalia user, if any.',
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async () => {
       const bearer = getRequestAuth();
@@ -120,7 +120,7 @@ export function registerAuthTools(server: McpServer) {
       title: 'List brands',
       description: 'List all Anomalia brands for the signed-in user (slug, plan, pending posts, autopilot).',
       inputSchema: z.object({}),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async () => withAuth(async (token) => api.listBrands(token)),
   );

@@ -12,7 +12,7 @@ export function registerStudioTools(server: McpServer) {
       title: 'Studio',
       description: 'Full studio dump: kit, people, documents, competitors, products, history summary.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getStudio(token, slug)),
   );
@@ -30,7 +30,7 @@ export function registerStudioTools(server: McpServer) {
         brand_style: z.string().optional(),
         language: z.string().optional(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, ...data }) => withAuth((token) => api.updateBrandKit(token, slug, data)),
   );
@@ -44,7 +44,7 @@ export function registerStudioTools(server: McpServer) {
         slug,
         colors: z.array(z.string().regex(/^#?[0-9a-fA-F]{3,8}$/)).min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, colors }) =>
       withAuth((token) =>
@@ -66,7 +66,7 @@ export function registerStudioTools(server: McpServer) {
         text: z.string().min(1),
         title: z.string().optional(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, text, title }) =>
       withAuth((token) => api.addDocument(token, slug, { title, content_text: text, kind: 'note' })),
@@ -81,7 +81,7 @@ export function registerStudioTools(server: McpServer) {
         slug,
         id: z.string().uuid(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
     },
     async ({ slug, id }) => withAuth((token) => api.deleteDocument(token, slug, id)),
   );
@@ -97,7 +97,7 @@ export function registerStudioTools(server: McpServer) {
         role: z.string().optional(),
         description: z.string().optional(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, name, role, description }) =>
       withAuth((token) =>
@@ -118,7 +118,7 @@ export function registerStudioTools(server: McpServer) {
         vibe: z.string().optional(),
         description: z.string().optional(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, name, role, gender, vibe, description }) =>
       withAuth((token) =>
@@ -142,7 +142,7 @@ export function registerStudioTools(server: McpServer) {
         slug,
         id: z.string().uuid(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
     },
     async ({ slug, id }) => withAuth((token) => api.deletePerson(token, slug, id)),
   );
@@ -158,7 +158,7 @@ export function registerStudioTools(server: McpServer) {
         website: z.string().optional(),
         rationale: z.string().optional(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, name, website, rationale }) =>
       withAuth((token) => api.addCompetitor(token, slug, { name, website, rationale })),
@@ -173,7 +173,7 @@ export function registerStudioTools(server: McpServer) {
         slug,
         id: z.string().uuid(),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
     },
     async ({ slug, id }) => withAuth((token) => api.deleteCompetitor(token, slug, id)),
   );
@@ -184,7 +184,7 @@ export function registerStudioTools(server: McpServer) {
       title: 'Research competitors',
       description: 'Run AI competitor research and add findings to the studio.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.researchCompetitors(token, slug)),
   );
@@ -195,7 +195,7 @@ export function registerStudioTools(server: McpServer) {
       title: 'Sync social history',
       description: 'Sync historical social posts into the studio.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.syncHistory(token, slug)),
   );

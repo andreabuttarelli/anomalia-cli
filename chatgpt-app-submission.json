@@ -1,0 +1,824 @@
+{
+  "$schema": "https://developers.openai.com/apps-sdk/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "Anomalia",
+    "subtitle": "Social media AI autopilot",
+    "description": "Anomalia helps users manage social brands from ChatGPT: review and approve posts, edit carousels, run editorial plans, SEO/GEO audits, blog drafts, and ads workflows through OAuth-backed MCP tools.",
+    "category": "PRODUCTIVITY"
+  },
+  "tools": {
+    "add_competitor": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "add_note": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "add_person": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "ads_action": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Runs ad-management actions such as sync, propose, create, reject, or pause campaigns.",
+        "open_world_justification": "Can create or change ads on connected advertising platforms.",
+        "destructive_justification": "Can create, pause, or reject campaigns with lasting effects on ad delivery."
+      }
+    },
+    "approve_plan": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Approves a pending editorial plan proposal for the brand.",
+        "open_world_justification": "Only updates private planning state inside Anomalia.",
+        "destructive_justification": "Commits the proposal as the active plan, replacing the pending draft."
+      }
+    },
+    "approve_post": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Approves one pending social post for a brand in Anomalia.",
+        "open_world_justification": "Can schedule or publish the post to connected social platforms.",
+        "destructive_justification": "Moves the post out of pending review into an approved/publish flow that is hard to reverse."
+      }
+    },
+    "approve_posts": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Approves every pending social post for a brand and publishes them through Anomalia.",
+        "open_world_justification": "Publishes approved posts to connected social platforms where they become publicly visible.",
+        "destructive_justification": "Publishes pending posts immediately, which cannot be undone from the approval step."
+      }
+    },
+    "chat": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Sends a natural-language request to Anomalia's brand assistant, which may read or mutate brand data.",
+        "open_world_justification": "May trigger workflows that touch external research or publishing systems depending on the message.",
+        "destructive_justification": "Does not itself force a delete, but downstream actions may change brand state."
+      }
+    },
+    "delete_article": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a blog article from the brand workspace.",
+        "open_world_justification": "Operates inside Anomalia; it does not create new public posts.",
+        "destructive_justification": "Permanently deletes the article."
+      }
+    },
+    "delete_competitor": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a competitor entry from the brand studio.",
+        "open_world_justification": "Only updates private studio data inside Anomalia.",
+        "destructive_justification": "Permanently deletes the competitor record."
+      }
+    },
+    "delete_document": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a studio knowledge document for the brand.",
+        "open_world_justification": "Only updates private studio data inside Anomalia.",
+        "destructive_justification": "Permanently deletes the document."
+      }
+    },
+    "delete_person": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a person profile from the brand studio.",
+        "open_world_justification": "Only updates private studio data inside Anomalia.",
+        "destructive_justification": "Permanently deletes the person record."
+      }
+    },
+    "discard_plan": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Discards a pending editorial plan proposal for the brand.",
+        "open_world_justification": "Only updates private planning state inside Anomalia.",
+        "destructive_justification": "Permanently discards the proposal."
+      }
+    },
+    "edit_post": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "generate_article": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "generate_person": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "geo_action": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "get_ads": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_analytics": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_calendar": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_dashboard": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_geo": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_gtm": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_keywords": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_plan": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_post": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_seo": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_status": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_studio": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_voice": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "get_weekly_plan": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "list_articles": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "list_brands": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "list_posts": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "list_products": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    },
+    "login": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Starts browser OAuth and stores a local refreshable session for the signed-in user.",
+        "open_world_justification": "Opens the Anomalia login page in an external browser to complete OAuth consent.",
+        "destructive_justification": "Does not delete brand data; it only creates or refreshes a local auth session."
+      }
+    },
+    "logout": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Clears the local OAuth session shared by the CLI and MCP.",
+        "open_world_justification": "Only updates local auth state; it does not post or change public content.",
+        "destructive_justification": "Revokes the local session so subsequent calls require login again."
+      }
+    },
+    "make_video": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "optimize_article": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "plan_week": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "produce_week": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "propose_plan": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "publish_article": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Publishes a blog article for the brand.",
+        "open_world_justification": "Makes the article publicly available on the brand's web presence.",
+        "destructive_justification": "Publishes content that becomes publicly visible."
+      }
+    },
+    "publish_post": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Publishes a selected social post immediately through Anomalia.",
+        "open_world_justification": "Posts content to connected social platforms where it becomes publicly visible.",
+        "destructive_justification": "Publishes live content that cannot be unsent from this tool call."
+      }
+    },
+    "refresh_keywords": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "regenerate_post_media": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "regenerate_slide": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "reject_post": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Deletes a pending social post from the brand's content library.",
+        "open_world_justification": "Operates only inside the user's Anomalia workspace and does not post publicly.",
+        "destructive_justification": "Permanently deletes the pending post."
+      }
+    },
+    "render_post": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "reorder_slides": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "replan_week": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "reschedule_post": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "research_competitors": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Researches competitors and writes findings into the brand studio.",
+        "open_world_justification": "Queries external web sources to gather competitor information.",
+        "destructive_justification": "Does not delete existing studio records; it adds research results."
+      }
+    },
+    "revise_plan": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "save_brief": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "seo_action": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "set_colors": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "sync_history": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Syncs historical social posts into the brand studio.",
+        "open_world_justification": "Reads connected social platform history into Anomalia.",
+        "destructive_justification": "Does not delete public posts; it imports history into the workspace."
+      }
+    },
+    "unpublish_article": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Unpublishes a previously published blog article.",
+        "open_world_justification": "Changes publicly visible web content by removing a published article.",
+        "destructive_justification": "Removes published content from the public site."
+      }
+    },
+    "update_brand_kit": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "update_voice": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Creates or updates private brand data inside Anomalia.",
+        "open_world_justification": "Does not write to public internet state or third-party systems by itself.",
+        "destructive_justification": "Does not delete, overwrite irreversibly, or revoke access."
+      }
+    },
+    "whoami": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only retrieves Anomalia account or brand data and does not create, update, or delete records.",
+        "open_world_justification": "Does not write to public internet state or third-party systems.",
+        "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "List brands after authentication.",
+      "user_prompt": "Using Anomalia, list my brands and show which ones have pending posts.",
+      "file_attachment_urls": null,
+      "tools_triggered": "list_brands",
+      "expected_output": "Returns the user's brands with slug, plan, pending counts, and autopilot status.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Review pending posts for a brand.",
+      "user_prompt": "Show pending posts for brand demo-brand and summarize captions that need edits.",
+      "file_attachment_urls": null,
+      "tools_triggered": "list_posts",
+      "expected_output": "Lists pending_user posts with enough caption/platform detail to decide approve or edit.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Approve all pending posts for a brand.",
+      "user_prompt": "Approve all pending posts for brand demo-brand.",
+      "file_attachment_urls": null,
+      "tools_triggered": "approve_posts",
+      "expected_output": "Confirms approval/publish of pending posts for that brand, or reports none pending.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Run SEO overview for a brand.",
+      "user_prompt": "Run an SEO overview for brand demo-brand and summarize the top issues.",
+      "file_attachment_urls": null,
+      "tools_triggered": "get_seo",
+      "expected_output": "Returns SEO grade/initiatives and a concise summary of the highest-priority issues.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Generate a blog draft for a topic.",
+      "user_prompt": "Generate a draft blog article for brand demo-brand about 'summer launch checklist' and leave it unpublished.",
+      "file_attachment_urls": null,
+      "tools_triggered": "generate_article",
+      "expected_output": "Creates a draft article and returns its id/status without publishing.",
+      "expected_output_url": null
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "Do not trigger for unrelated calendar requests.",
+      "user_prompt": "What meetings do I have on my Google Calendar tomorrow?",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked because calendar scheduling outside Anomalia is unsupported.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not trigger for generic coding tasks.",
+      "user_prompt": "Write a Python script to resize images in a folder.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should not be invoked; this is a general programming request unrelated to Anomalia brands or content.",
+      "expected_output_url": null
+    },
+    {
+      "description": "Do not publish without an Anomalia brand context.",
+      "user_prompt": "Post 'hello world' to Instagram right now with no brand selected.",
+      "file_attachment_urls": null,
+      "tools_triggered": null,
+      "expected_output": "The app should refuse or ask for an Anomalia brand slug rather than inventing credentials or posting outside the product.",
+      "expected_output_url": null
+    }
+  ]
+}

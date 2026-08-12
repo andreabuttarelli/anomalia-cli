@@ -12,7 +12,7 @@ export function registerPlanTools(server: McpServer) {
       title: 'Editorial plan',
       description: 'View active editorial plan and any pending proposal.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getEditorialPlan(token, slug)),
   );
@@ -23,7 +23,7 @@ export function registerPlanTools(server: McpServer) {
       title: 'Propose editorial plan',
       description: 'Generate the first / a new editorial plan proposal.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.proposePlan(token, slug)),
   );
@@ -37,7 +37,7 @@ export function registerPlanTools(server: McpServer) {
         slug,
         feedback: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, feedback }) => withAuth((token) => api.revisePlan(token, slug, feedback)),
   );
@@ -48,7 +48,7 @@ export function registerPlanTools(server: McpServer) {
       title: 'Approve editorial plan',
       description: 'Approve the proposed editorial plan.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
     },
     async ({ slug }) => withAuth((token) => api.approvePlan(token, slug)),
   );
@@ -59,7 +59,7 @@ export function registerPlanTools(server: McpServer) {
       title: 'Discard editorial plan',
       description: 'Discard the proposed editorial plan.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: false, destructiveHint: true },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: true },
     },
     async ({ slug }) => withAuth((token) => api.discardPlan(token, slug)),
   );
@@ -75,7 +75,7 @@ export function registerPlanTools(server: McpServer) {
         brief: z.string(),
         products: z.array(z.string()).optional().describe('Exact product names to feature'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, week, brief, products }) =>
       withAuth((token) => api.saveBrief(token, slug, week, brief, products)),
@@ -91,7 +91,7 @@ export function registerPlanTools(server: McpServer) {
         week: z.number().int().min(0),
         brief: z.string().min(1),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, week, brief }) => withAuth((token) => api.replanWeek(token, slug, week, brief)),
   );
@@ -102,7 +102,7 @@ export function registerPlanTools(server: McpServer) {
       title: 'Weekly plan',
       description: 'View weekly plan seeds and related posts.',
       inputSchema: z.object({ slug }),
-      annotations: { readOnlyHint: true },
+      annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug }) => withAuth((token) => api.getWeeklyPlan(token, slug)),
   );
@@ -116,7 +116,7 @@ export function registerPlanTools(server: McpServer) {
         slug,
         week: z.number().int().min(0),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, week }) => withAuth((token) => api.planWeek(token, slug, week)),
   );
@@ -131,7 +131,7 @@ export function registerPlanTools(server: McpServer) {
         week: z.number().int().min(0).optional().describe('Unused for API resolve — seeds draft is auto-detected'),
         row_index: z.number().int().min(0).optional().describe('Produce a single seed row only'),
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
     },
     async ({ slug, row_index }) =>
       withAuth(async (token) => {

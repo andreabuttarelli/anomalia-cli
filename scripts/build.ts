@@ -101,6 +101,24 @@ try {
   console.log(`  ⚠ Could not copy docs: ${e}`);
 }
 
+// Homebrew formulas prefer archives over raw binaries.
+for (const target of selectedTargets) {
+  const outName = `anomalia-${target.name}`;
+  const outPath = join(DIST, outName);
+  if (!existsSync(outPath)) continue;
+  const tarPath = `${outPath}.tar.gz`;
+  const tar = Bun.spawnSync(['tar', '-czf', tarPath, '-C', DIST, outName], {
+    cwd: ROOT,
+    stdout: 'inherit',
+    stderr: 'inherit',
+  });
+  if (tar.exitCode !== 0) {
+    console.error(`  ✗ Failed to archive ${outName}`);
+    continue;
+  }
+  console.log(`  ✓ ${outName}.tar.gz`);
+}
+
 console.log('\nDone! Binaries are in dist/');
 console.log('\nTo install locally:');
 console.log('  sudo cp dist/anomalia-macos-arm64 /usr/local/bin/anomalia');

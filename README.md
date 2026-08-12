@@ -38,11 +38,21 @@ your blog — from the terminal **or** from an AI agent like Cursor or Claude.
 ## 1. CLI
 
 ```bash
+# npm
+npm install -g anomalia-cli
+
+# Homebrew
+brew tap andreabuttarelli/anomalia-cli https://github.com/andreabuttarelli/anomalia-cli
+brew install anomalia
+
+# curl (standalone binary)
 curl -sSL https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/scripts/install.sh | bash
+
 anomalia login
 ```
 
-Standalone binary for macOS (arm64/x64) and Linux (arm64/x64) — no runtime required.
+Standalone binary for macOS (arm64/x64) and Linux (arm64/x64) — no runtime required
+(curl / Homebrew). npm installs a Node bundle (`node >= 20`).
 
 ```bash
 anomalia brands
@@ -200,8 +210,9 @@ bun run build:all         # all four targets
 bun run vercel-build      # MCP bundles under mcp/api/
 ```
 
-Releases: push a `v*` tag → CI typechecks, tests, cross-compiles binaries + `SHA256SUMS.txt` on
-the GitHub Release (`install.sh` / `anomalia update`).
+Releases: push a `v*` tag → CI typechecks, tests, cross-compiles binaries + `.tar.gz` +
+`SHA256SUMS.txt` on the GitHub Release, bumps [`Formula/anomalia.rb`](Formula/anomalia.rb),
+and publishes `anomalia-cli` to npm when `NPM_TOKEN` is set. Details: [`docs/distribute.md`](docs/distribute.md).
 
 ---
 

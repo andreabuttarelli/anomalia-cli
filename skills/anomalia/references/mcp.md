@@ -111,6 +111,7 @@ Ids from list tools accept short unambiguous prefixes (same rule as the CLI).
 | 404 on `/health` | Wrong deploy root / path | Expect `/health` and `/mcp` on the MCP host |
 | Tools missing | MCP not connected in host | Check Cursor MCP panel; restart host |
 | Auth works in CLI but not MCP | Different machine / no session file | Run `login` in the MCP process environment |
+| `Not an https or loopback URI: cursor://anysphere.cursor-mcp/oauth/callback` | Cursor DCR uses a custom-scheme callback; Anomalia OAuth only allows https/loopback | Use **stdio** MCP, update Cursor (localhost `:8787` callback), or pass Bearer; see [docs/mcp.md](../../../docs/mcp.md#cursor--remote-http-oauth) |
 
 ## 6. More
 

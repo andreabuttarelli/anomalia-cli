@@ -122,6 +122,54 @@ Claude/Codex marketplace plugin (skill + remote MCP): [`plugins/anomalia/`](../p
 
 Protected resource metadata: `GET /.well-known/oauth-protected-resource`.
 
+## Cursor + remote HTTP OAuth
+
+Cursor’s remote MCP connector discovers Anomalia’s authorization server and runs
+[Dynamic Client Registration](https://datatracker.ietf.org/doc/html/rfc7591). Some Cursor
+builds still register the custom-scheme callback:
+
+```text
+cursor://anysphere.cursor-mcp/oauth/callback
+```
+
+Anomalia’s `/oauth/register` only accepts **https** or **loopback http** redirect URIs, so that
+registration fails with:
+
+```text
+Not an https or loopback URI: cursor://anysphere.cursor-mcp/oauth/callback
+```
+
+**Workarounds (pick one):**
+
+1. **Prefer stdio locally** (recommended) — no remote OAuth handshake:
+
+```json
+{
+  "mcpServers": {
+    "anomalia": {
+      "command": "bun",
+      "args": ["run", "/ABS/PATH/to/anomalia-cli/mcp/stdio.ts"]
+    }
+  }
+}
+```
+
+Then call the `login` tool (or run `anomalia login` first).
+
+2. **Update Cursor** so MCP OAuth uses the loopback callback
+   `http://localhost:8787/callback` (RFC 8252). That URI **is** accepted by Anomalia DCR.
+
+3. **Bearer header** — after `anomalia login`, put the access token from
+   `~/.config/anomalia/session.json` in the MCP config `headers.Authorization` (if your Cursor
+   build supports headers on URL servers), or bridge with
+   [mcp-remote](https://www.npmjs.com/package/mcp-remote).
+
+**Permanent fix (Anomalia app, not this repo):** allowlist Cursor’s known redirect URIs in the
+authorization server’s DCR validator (`/oauth/register`), including
+`cursor://anysphere.cursor-mcp/oauth/callback` and
+`https://www.cursor.com/agents/mcp/oauth/callback`, while keeping loopback `http://localhost`
+/ `http://127.0.0.1` allowed.
+
 ## Deploy notes (operators)
 
 Vercel project **Root Directory = `mcp`**. Artifacts: `mcp/api/*`, `mcp/vercel.json`.  

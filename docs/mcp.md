@@ -109,7 +109,8 @@ Publishable Agent Skill (agentskills.io):
 npx skills add andreabuttarelli/anomalia-cli --skill anomalia
 ```
 
-Sources: [`skills/anomalia/`](../skills/anomalia/) (`SKILL.md` + `references/`).
+Sources: [`skills/anomalia/`](../skills/anomalia/) (`SKILL.md` + `references/`).  
+Claude/Codex marketplace plugin (skill + remote MCP): [`plugins/anomalia/`](../plugins/anomalia/) — see [`plugins.md`](plugins.md).
 
 ## Auth rules (summary)
 

@@ -65186,6 +65186,10 @@ var init_api2 = __esm({
       // ── Ads ───────────────────────────────────────────────────────────────
       getAds: (t, slug5) => get2(`/api/v1/brands/${slug5}/ads`, t),
       adsAction: (t, slug5, body) => post2(`/api/v1/brands/${slug5}/ads`, t, body),
+      /** Run competitor-ad remix agent (harvest → vision → structured briefs). */
+      adsRemix: (t, slug5) => post2(`/api/v1/brands/${slug5}/ads/remix`, t),
+      /** Last remix briefs for the brand (no re-run). */
+      getAdsRemix: (t, slug5) => get2(`/api/v1/brands/${slug5}/ads/remix`, t),
       // ── Chat ──────────────────────────────────────────────────────────────
       chat: async (t, slug5, message) => {
         const res = await fetch(`${appUrl()}/app/${slug5}/chat`, {
@@ -67033,6 +67037,16 @@ function registerWebTools(server) {
     async ({ slug: slug5, action, campaignId, extra }) => withAuth(
       (token) => api.adsAction(token, slug5, { action, campaignId, ...extra ?? {} })
     )
+  );
+  server.registerTool(
+    "ads_remix",
+    {
+      title: "Ads remix",
+      description: "Harvest competitor/trending ads, analyze with vision, and return ranked remix briefs in brand voice (hook, headline, body, CTA, product, strategy, visualPrompt). Replaces previous briefs. Costs credits.",
+      inputSchema: external_exports.object({ slug: slug4 }),
+      annotations: { readOnlyHint: false, destructiveHint: false }
+    },
+    async ({ slug: slug5 }) => withAuth((token) => api.adsRemix(token, slug5))
   );
   server.registerTool(
     "chat",

@@ -1,7 +1,7 @@
 import ora from 'ora';
 import { loadSession } from '../lib/auth.ts';
-import { api } from '../lib/api.ts';
-import { ok, warn, c, table } from '../lib/display.ts';
+import { api, type AdsRemixBrief } from '../lib/api.ts';
+import { ok, warn, c, table, section, info } from '../lib/display.ts';
 
 export async function cmdAds(
   slug: string,
@@ -13,6 +13,7 @@ export async function cmdAds(
     sync?: boolean;
     budget?: string;
     create?: boolean;
+    remix?: boolean;
     platform?: string;
     name?: string;
     headline?: string;
@@ -28,6 +29,25 @@ export async function cmdAds(
     process.exit(1);
   }
   const token = session.access_token;
+
+  if (opts.remix) {
+    const spinner = ora('Remix ads: harvest + vision analysis…').start();
+    try {
+      const r = await api.adsRemix(token, slug);
+      spinner.stop();
+      if (r.error) {
+        warn(r.error);
+        process.exit(1);
+      }
+      const briefs = [...(r.briefs ?? [])].sort((a, b) => a.rank - b.rank);
+      ok(`${briefs.length} remix brief${briefs.length === 1 ? '' : 's'}`);
+      printRemixBriefs(briefs);
+    } catch (e) {
+      spinner.fail(String(e));
+      process.exit(1);
+    }
+    return;
+  }
 
   if (opts.sync) {
     const spinner = ora('Sync ad accounts + metrics…').start();
@@ -163,4 +183,42 @@ export async function cmdAds(
     spinner.fail(String(e));
     process.exit(1);
   }
+}
+
+function printRemixBriefs(briefs: AdsRemixBrief[]) {
+  if (!briefs.length) {
+    warn('Nessun brief. Controlla competitor ads / brand kit / catalogo prodotti.');
+    return;
+  }
+
+  section('Ads remix briefs');
+  table(
+    ['#', 'Hook', 'Headline', 'Product', 'Strategy'],
+    briefs.map((b) => [
+      b.rank,
+      truncate(b.hook, 36),
+      truncate(b.headline, 36),
+      truncate(b.product ?? '—', 20),
+      truncate(b.strategy, 40),
+    ])
+  );
+
+  for (const b of briefs) {
+    console.log(`\n${c.bold(`#${b.rank}`)} ${c.dim(b.product ?? '—')}`);
+    console.log(`  Hook      ${b.hook}`);
+    console.log(`  Headline  ${b.headline}`);
+    if (b.body) console.log(`  Body      ${b.body}`);
+    if (b.cta) console.log(`  CTA       ${b.cta}`);
+    console.log(`  Strategy  ${b.strategy}`);
+    if (b.keep) console.log(`  Keep      ${b.keep}`);
+    if (b.change) console.log(`  Change    ${b.change}`);
+    const vp = b.visualPrompt ?? b.visual_prompt;
+    if (vp) info(`  Visual    ${vp}`);
+  }
+  console.log('');
+}
+
+function truncate(s: string, n: number): string {
+  const t = s.replace(/\s+/g, ' ').trim();
+  return t.length > n ? `${t.slice(0, n - 1)}…` : t;
 }

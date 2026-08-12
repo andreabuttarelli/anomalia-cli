@@ -89,6 +89,13 @@ Editing a SCHEDULED post re-syncs it to Zernio automatically, so what goes out i
 
 Note: `--id` accepts the short prefix printed in the tables.
 
+### Ads
+- `anomalia ads <slug>` — Campaigns, metrics, boost candidates
+- `anomalia ads <slug> --propose` — Propose boosts from top organic posts
+- `anomalia ads <slug> --remix` — Remix competitor/trending ads into ranked creative briefs
+- `anomalia ads <slug> --approve <id> [--budget N]` — Approve and launch a proposal
+- `anomalia ads <slug> --create --name "..." --headline "..."` — Standalone proposal
+
 ### Analytics
 - `anomalia analytics <slug>` — View analytics
 - `anomalia calendar <slug> [--month YYYY-MM]` — View calendar

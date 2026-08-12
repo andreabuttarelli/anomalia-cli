@@ -73,6 +73,7 @@ anomalia web <slug> generate --topic "..."   # Nuovo articolo
 anomalia web <slug> optimize|publish --id <id>
 anomalia ads <slug>                          # Campagne + metriche paid
 anomalia ads <slug> --propose                # Proposte boost dai top post
+anomalia ads <slug> --remix                  # Remix competitor ads → brief creativi
 anomalia ads <slug> --approve <id> [--budget N]
 anomalia ads <slug> --create --name "..." --headline "..." [--platform metaads|googleads]
 ```

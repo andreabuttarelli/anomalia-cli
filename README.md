@@ -51,6 +51,7 @@ anomalia content my-brand --status pending_user
 anomalia approve my-brand --all
 anomalia seo my-brand
 anomalia web my-brand generate --topic "..."
+anomalia ads my-brand --remix
 anomalia ai my-brand --message "..." --pipe
 ```
 
@@ -63,7 +64,7 @@ prefixes error instead of guessing.
 | Posts | `content`, `approve`, `post <id> [show\|edit\|regenerate\|slide\|reorder\|video\|publish]` |
 | Planning | `plan`, `weekly-plan`, `calendar`, `gtm` |
 | Brand | `studio`, `voice`, `people`, `products` |
-| Web | `seo`, `geo`, `keywords`, `web` |
+| Web | `seo`, `geo`, `keywords`, `web`, `ads` |
 | Insight | `dashboard`, `status`, `analytics` |
 | AI | `ai --message "..."` — natural language, full read/write access |
 

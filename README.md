@@ -37,22 +37,43 @@ your blog — from the terminal **or** from an AI agent like Cursor or Claude.
 
 ## 1. CLI
 
+### Install
+
+Pick one:
+
+| Method | Command | Notes |
+|--------|---------|--------|
+| **npm** | `npm install -g anomalia-cli` | Needs Node.js ≥ 20 |
+| **Homebrew** | see below | macOS / Linux, standalone binary |
+| **Installer** | see below | curl script → binary on PATH |
+| **From source** | see below | Needs [Bun](https://bun.sh) |
+
+**npm**
+
 ```bash
-# npm
 npm install -g anomalia-cli
-
-# Homebrew
-brew tap andreabuttarelli/anomalia-cli https://github.com/andreabuttarelli/anomalia-cli
-brew install anomalia
-
-# curl (standalone binary)
-curl -sSL https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/scripts/install.sh | bash
-
+# or:  pnpm add -g anomalia-cli   /   bun add -g anomalia-cli
 anomalia login
 ```
 
-Standalone binary for macOS (arm64/x64) and Linux (arm64/x64) — no runtime required
-(curl / Homebrew). npm installs a Node bundle (`node >= 20`).
+**Homebrew**
+
+```bash
+brew tap andreabuttarelli/anomalia-cli https://github.com/andreabuttarelli/anomalia-cli
+brew install anomalia
+anomalia login
+```
+
+**Installer (standalone binary)** — macOS arm64/x64 and Linux arm64/x64, no Node/Bun required:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/andreabuttarelli/anomalia-cli/main/scripts/install.sh | bash
+anomalia login
+```
+
+Update later with `anomalia update`, or `npm install -g anomalia-cli@latest` / `brew upgrade anomalia` depending on how you installed. More detail: [`docs/distribute.md`](docs/distribute.md).
+
+### Quick start
 
 ```bash
 anomalia brands

@@ -214,6 +214,20 @@ export async function cmdAds(
           c.name.slice(0, 40)
         ])
       );
+
+      // The diagnosis, not just the number. 'healthy' and 'insufficient_data' are correct answers
+      // that are not news — printing them on every row would train people to skip the section.
+      const diagnosed = data.summary.campaigns.filter(
+        (x) => x.fatigue && x.fatigue.id !== 'healthy' && x.fatigue.id !== 'insufficient_data'
+      );
+      if (diagnosed.length) {
+        console.log(`\n${c.bold('Diagnosi')}`);
+        for (const camp of diagnosed) {
+          console.log(`  ${c.bold(camp.name.slice(0, 40))} — ${c.yellow(camp.fatigue!.label)}`);
+          console.log(`    ${camp.fatigue!.action}`);
+          console.log(`    ${c.dim(`Cosa mi farebbe cambiare idea: ${camp.fatigue!.wouldChangeMyMind}`)}`);
+        }
+      }
     } else {
       warn('Nessuna campagna. Prova: anomalia ads <slug> --propose');
     }

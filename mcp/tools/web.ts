@@ -39,7 +39,8 @@ export function registerWebTools(server: McpServer) {
     'get_geo',
     {
       title: 'GEO overview',
-      description: 'AI visibility: share of voice, citations, ready fixes.',
+      description:
+        'AI visibility. Returns `citability` (the five weighted levers — extractability 25%, evidence 25%, entity 20%, corroboration 20%, machine access 10% — with its coverage, the BINDING CONSTRAINT that is actually limiting citation, anti-citation disqualifiers, and ranked fixes), plus citations and ready artifacts. Read `citability.score` and NOT `audit.tech_score` when asked whether a model will cite the brand: tech_score only answers whether a crawler can reach the site and is 10% of the answer. `audit.share_of_voice` (named in the answer) and `citability.domainCitedShare` (own domain cited as a source) are two different events with different fixes. A `citability.score` of null means coverage was too thin to grade — report that, do not substitute tech_score.',
       inputSchema: z.object({ slug }),
       annotations: { readOnlyHint: true },
     },
@@ -50,7 +51,8 @@ export function registerWebTools(server: McpServer) {
     'geo_action',
     {
       title: 'GEO action',
-      description: 'Run GEO citation audit or generate fix artifacts.',
+      description:
+        'Run a GEO citation audit or generate fix artifacts. The audit asks every question several times per engine because citation is non-deterministic — a single observation is noise — so it is slow (1-2 min) and should not be re-run to "check" a result. Returns citabilityScore, shareOfVoice, domainCitedShare and the binding constraint.',
       inputSchema: z.object({
         slug,
         action: z.enum(['audit', 'fix']),
@@ -199,7 +201,8 @@ export function registerWebTools(server: McpServer) {
     'get_ads',
     {
       title: 'Ads overview',
-      description: 'Ad campaigns summary, candidates, and connected ad accounts.',
+      description:
+        'Ad campaigns summary, boost candidates and connected ad accounts. Each campaign carries `fatigue`: WHY its numbers moved, read from the joint pattern of CTR/CPM/CVR/frequency — creative_fatigue, audience_exhaustion, auction_pressure, post_click, message_match, tracking_failure, bad_concept, learning_reset, insufficient_data or healthy. These call for OPPOSITE actions: never recommend new creative without reading it first, and when it says tracking_failure say so before anything else. `fatigue.wouldChangeMyMind` states what would overturn the read.',
       inputSchema: z.object({ slug }),
       annotations: { readOnlyHint: true },
     },

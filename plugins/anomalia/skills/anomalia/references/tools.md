@@ -60,10 +60,10 @@ All tools take a brand `slug` when brand-scoped. Ids accept short unambiguous pr
 | MCP | CLI |
 |-----|-----|
 | `get_seo` / `seo_action` | `anomalia seo <slug> [run\|plan\|…]` |
-| `get_geo` / `geo_action` | `anomalia geo <slug> [run\|fix]` |
+| `get_geo` / `geo_action` | `anomalia geo <slug> [run\|fix]` — returns `citability` (five weighted levers + binding constraint + anti-signals); read it, not `tech_score` |
 | `get_keywords` / `refresh_keywords` | `anomalia keywords <slug> [refresh]` |
 | `list_articles` / `generate_article` / `optimize_article` | `anomalia web <slug> …` |
 | `publish_article` / `unpublish_article` / `delete_article` | `anomalia web <slug> publish\|…` |
-| `get_ads` / `ads_action` | `anomalia ads <slug> [--propose\|--create\|--approve\|--pause\|--resume\|--duplicate\|--delete\|--reject] [--ad <adId>]` |
+| `get_ads` / `ads_action` (each campaign carries a `fatigue` diagnosis — read it before proposing creative) | `anomalia ads <slug> [--propose\|--create\|--approve\|--pause\|--resume\|--duplicate\|--delete\|--reject] [--ad <adId>]` |
 | `ads_remix` | `anomalia ads <slug> --remix` |
 | `chat` | `anomalia ai <slug> --message "…" --pipe` |

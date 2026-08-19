@@ -11,93 +11,88 @@ stesso problema con Composio, ed è la fonte di gran parte dei pattern qui sotto
 
 ---
 
-## 1. Le due classi di integrazione
+## 1. Dove stava davvero Nango
 
-Non sono la stessa cosa e non vanno decise insieme:
+Verificato sul codice dell'app (`021-app`), non per assunzione:
 
-| | **Publishing rails** | **Long tail agentico** |
+| Superficie | Broker | Note |
 |---|---|---|
-| Cosa | Instagram, TikTok, Facebook, LinkedIn, Threads, YouTube, X | HubSpot, Notion, Slack, Google Analytics, Search Console, Sheets, Drive, Canva, Shopify… |
-| A cosa serve | pubblicare, leggere lo storico, raccogliere metriche | dare contesto all'agente (lanci, prodotti, traffico, brand assets) |
-| Vincoli | app propria con review (Meta, TikTok, LinkedIn), scope sensibili, upload binari multi-step, rate limit per account, sync incrementale dello storico | breadth: contano *quante* app colleghi e in quanto tempo |
-| Volume | alto e continuo | basso e a burst |
+| **Publishing social** (Instagram, TikTok, Facebook, LinkedIn, X, …) | **Zernio** | `social_accounts.zernio_account_id`, `src/lib/server/publish.ts`. Nango non l'ha mai toccato. |
+| **Knowledge connectors** (Drive, Notion, GitHub, Gmail → corpus del brand) | **Nango → Composio** | ingest in `brand_documents`, letture live in chat |
+| **Integrazioni agentiche** (Supabase, Canva, e qualunque altro toolkit) | **Nango → Composio** | tool che la chat può chiamare |
+
+Quindi la domanda "Composio al posto di Nango" riguardava **solo il long tail**: esattamente il
+caso in cui Composio vince. Il rischio che avevo sollevato sulle publishing rails (token raw,
+upload multi-step, sync incrementale) non si applica: quel pezzo è di Zernio e resta dov'è.
 
 ## 2. Nango e Composio, sui punti che decidono
 
 | | Nango | Composio |
 |---|---|---|
 | Setup OAuth | **una tua app per integrazione** in produzione. Le shared developer credentials esistono solo per testare: la doc dice esplicitamente di non usarle in prod (violano i ToS della maggior parte dei provider, rate-limited) | **121 toolkit con managed app** (zero setup), **96 che richiedono credenziali proprie**; il resto del catalogo (1000+) usa API key/bearer dell'utente, dove non c'è nessuna app da registrare |
-| Mix per integrazione | — | sì: `authConfigs: { instagram: "ac_…" }`, i toolkit non elencati restano su managed auth |
+| Mix per integrazione | — | sì: una custom auth config per toolkit, gli altri restano su managed auth |
 | Branding consent screen | la tua app, sempre | "Composio wants to access your account"; white-label solo della Connect Link page |
-| Scope | tuoi | default sensati, sovrascrivibili anche in managed (`credentials: { scopes: "…" }`) |
-| Token raw | disponibili (li tieni tu) | mascherati dall'API (primi 4 caratteri); per chiamate custom si passa da **proxy execute**, vincolato al dominio del toolkit |
-| Sync incrementale | **syncs** (ingest continuo di record + webhook) | assente: solo trigger (realtime su alcuni toolkit, polling ≥15 min sulle managed app) |
-| Tool schema pronti per l'agente | no (chiami tu le API) | sì, è il prodotto |
+| Scope | tuoi | default sensati, sovrascrivibili anche in managed |
+| Token raw | disponibili (li tieni tu) | mascherati dall'API; per chiamate custom si passa da **proxy execute**, vincolato al dominio del toolkit |
+| Sync incrementale | **syncs** | assente: solo trigger (polling ≥15 min sulle managed app). Irrilevante qui: l'ingest del corpus è un worker nostro (`/api/v1/knowledge/sources/work`) |
+| Tool schema pronti per l'agente | no | sì, è il prodotto |
 | Rate limit piattaforma | self-host o cloud | per organizzazione: 2.000 req/min (Starter/Hobby), 10.000 (Growth) |
 | Portabilità in uscita | token esportabili | i connected account restano da loro: uscire = far ri-autorizzare la base utenti |
 
-Piattaforme che ci riguardano, per tipo di auth su Composio:
+Piattaforme rilevanti, per tipo di auth su Composio:
 
-- **Managed** (zero setup): HubSpot, Salesforce, Pipedrive, Notion, Slack, Airtable, Google
-  Sheets/Docs/Drive/Calendar, Google Analytics, Google Search Console, Google Ads, Canva,
-  Figma, Mailchimp, Stripe, Reddit, Discord, Instagram, Facebook, LinkedIn, YouTube.
-- **App propria richiesta**: TikTok, X/Twitter, Pinterest (+ Ads), Shopify, Klaviyo,
-  Webflow, WordPress.com, Meta Ads, LinkedIn Ads.
+- **Managed** (zero setup): Google Drive, Gmail, Notion, GitHub, HubSpot, Salesforce, Pipedrive,
+  Slack, Airtable, Google Sheets/Docs/Calendar, Google Analytics, Google Search Console, Google
+  Ads, Canva, Figma, Mailchimp, Stripe, Reddit, Discord, Instagram, Facebook, LinkedIn, YouTube.
+- **App propria richiesta**: TikTok, X/Twitter, Pinterest (+ Ads), Shopify, Klaviyo, Webflow,
+  WordPress.com, Meta Ads, LinkedIn Ads.
 
-## 3. Decisione
+## 3. Decisione (implementata)
 
-**Ibrido, con il baricentro su Composio per tutto ciò che non è publishing.**
+**Composio sostituisce Nango su tutti i connettori.** Il publishing resta su Zernio.
 
-1. **Long tail → Composio.** È esattamente dove Nango costa lavoro (un'app OAuth per
-   integrazione, con review) e Composio lo azzera per le app che ci servono davvero.
-   Time-to-integration da settimane a zero, e i tool arrivano già con lo schema pronto
-   per l'agente e per il server MCP.
-2. **Publishing rails → app nostra.** Qui la nostra app Meta/TikTok/LinkedIn serve in
-   ogni caso, quindi il setup OAuth non è più il criterio. Decidono: (a) servono i token
-   raw? (b) serve il sync incrementale dello storico post/metriche? (c) quanto pesa il
-   costo di uscita? Finché la risposta a (a) o (b) è sì, questo pezzo resta su
-   Nango/OAuth nostro. Se diventa no, si sposta su Composio con una **custom auth config**
-   per piattaforma, senza toccare il resto.
-3. **Il vendor non deve essere visibile fuori dal connector.** CLI, MCP e agente vedono
-   solo provider slug e stato della connessione. Nessun token attraversa questo repo.
+Motivo: in produzione Nango chiedeva una nostra OAuth app *per ogni* integrazione — settimane di
+developer portal e review prima di vedere un token. Con Composio aggiungere un'integrazione è una
+riga di registro. Quando un toolkit ha bisogno del nostro branding, dei nostri scope o della
+nostra quota, si crea una custom auth config nella dashboard Composio: il codice preferisce
+automaticamente una config custom a quella managed, senza modifiche.
 
-Criteri per una migrazione completa a Composio (tutti e tre veri):
+Cosa questo costa, detto esplicitamente:
 
-- nessun flusso di publishing ha bisogno del token in chiaro (proxy execute regge upload
-  binari e flussi multi-step in un PoC reale su Instagram e TikTok);
-- il sync dello storico è riscritto in casa sopra i trigger, oppure accettiamo latenza ≥15 min;
-- accettiamo che uscire da Composio significhi re-consent di tutti gli utenti.
+- **I token non li vediamo più.** Tutte le chiamate ai provider passano dal proxy Composio, che
+  inietta le credenziali server-side. L'ingest e le letture live in chat funzionano identiche.
+- **Il Google Picker non funziona più.** Ha bisogno di un access token OAuth nel browser, che
+  Composio non consegna: l'endpoint risponde `picker_unavailable` e lo scope Drive si sceglie
+  dalla lista di cartelle servita dal server.
+- **Le connessioni esistenti vanno rifatte.** Un connection id Nango non significa nulla per
+  Composio: la migrazione marca le righe come da ricollegare, preservando righe, scope settings e
+  documenti già ingeriti.
+- **Costo di uscita.** Uscire da Composio significa far ri-autorizzare gli utenti.
 
-## 4. Forma del connector (backend)
+## 4. Forma del connector (backend, `021-app`)
 
-Contratto minimo, sul modello di `packages/adapter-kit/src/interfaces.ts` di rakazo. Il
-punto è che la scelta del vendor diventi un flag **per piattaforma**, non un refactor:
+Moduli, con la loro responsabilità:
 
-```ts
-export type ConnectorTool = { name: string; description: string; inputSchema: object };
+| Modulo | Cosa fa |
+|---|---|
+| `src/lib/server/composio.ts` | client REST v3.1: toolkit, auth config, Connect Link, connected account, tool, proxy. Redazione delle chiavi su errori e payload; nessuna funzione qui può restituire un token |
+| `src/lib/composio-catalog.ts` (+ `server/`) | catalogo e registro: `app_integration_registry` decide cosa vede un brand, `brand_app_connections` è lo specchio di Composio, riconciliato a ogni lettura |
+| `src/lib/server/composio-agent.ts` | tool per l'agente: `list_integrations_tools` / `call_integrations_tools`, su toolkit slug e tool slug, con `query` per cercare dentro un toolkit grande invece di riversarlo nel context |
+| `knowledge-connectors/provider-fetch.ts` | `ProviderAuth = { connectedAccountId, toolkit }` al posto del token: ogni chiamata al provider passa dal proxy |
 
-export interface ConnectorProvider {
-  describe(): { id: string; capabilities: { discover: boolean; oauth: boolean } };
-  /** Solo i tool delle app effettivamente collegate: il catalogo intero non entra nel context. */
-  discoverTools(ctx: ConnectorContext): Promise<ConnectorTool[]>;
-  execute(call: ConnectorCall, ctx: ConnectorContext): AsyncIterable<ConnectorEvent>;
-}
+Il flusso di connessione, che è la parte che si sbaglia più facilmente:
 
-export interface ConnectionAuthProvider {
-  begin(req: { provider: string; redirectUrl: string }, ctx: ConnectorContext):
-    Promise<{ authorizationUrl: string | null; state: string }>;
-  /** Interroga il provider: il callback OAuth atterra nel browser, non da noi. */
-  ready(provider: string, ctx: ConnectorContext): Promise<boolean>;
-  revoke(connectionRef: string, ctx: ConnectorContext): Promise<void>;
-}
+```
+POST /connections  →  ensureAuthConfig(toolkit)   // managed, o la nostra custom config
+                   →  createConnectLink()          // Connect Link ospitata da Composio
+                   →  riga `pending` nel DB        // ← è questa che si interroga
+       utente autorizza nel browser (il callback NON torna da noi)
+POST /connections/:id/complete  →  Composio dice ACTIVE?  →  riga `active` + primo sync
 ```
 
-Implementazioni: `NangoConnector`, `ComposioConnector`, più un `CompositeConnector` che
-instrada per provider (`PUBLISHING_PROVIDERS` → Nango, resto → Composio) e **degrada**:
-se il long tail non risponde, i tool di publishing restano disponibili. Per i test, un
-`FakeConnector` deterministico con un catalogo finto — in rakazo è
-`packages/adapters/src/composio-emulator.ts`, attivo quando manca la API key, e permette
-di testare tutto il flusso di connessione offline.
+Da rakazo (`packages/adapters/src/composio-connector.ts`) vengono: la sessione filtrata sui
+toolkit connessi, il polling di `connectionReady` invece dell'inseguimento del callback, la
+riconciliazione DB↔provider e la redaction su errori *e* payload.
 
 ## 5. Contratto API consumato dalla CLI e dall'MCP
 
@@ -160,16 +155,28 @@ Regole del contratto:
 | `logId` di ogni chiamata esterna salvato come evento | `collectLogIds` → `effect.recorded` | audit di cosa è stato pubblicato e con quale chiamata |
 | Skill del vendor vendorizzata con hash | `.agents/skills/composio/` + `skills-lock.json` | l'agente integra il vendor seguendo la sua doc corrente, versionata |
 
-## 7. Piano
+Già in `021-app` dopo questa migrazione: contratto e composite (nella forma di §4), sessione
+filtrata sui toolkit connessi, riga di prompt con le app collegate, redaction, riconciliazione.
+Ancora aperti: **emulatore deterministico** per i test offline, **cache TTL del catalogo** (oggi
+ogni apertura della pagina interroga Composio) e **audit dei `logId`** di ogni chiamata esterna.
 
-1. **Ora** — superficie utente in questa CLI (`anomalia connections`, tool MCP) e
-   contratto API congelato (§5).
-2. **Backend** — `ConnectorProvider` + `CompositeConnector`, endpoint `connections/*`,
-   riconciliazione, redaction, evento di audit per ogni esecuzione esterna.
-3. **Composio sul long tail** — managed auth, partendo da Google Analytics, Search
-   Console, HubSpot e Notion; i tool scoperti finiscono nell'MCP server e nell'agente.
-4. **Publishing** — resta dov'è. Si rivaluta con i criteri di §3 dopo un PoC di proxy
-   execute su Instagram e TikTok.
+## 7. Stato
+
+Fatto (branch `claude/rakazo-composio-nango-7xyfom` su entrambi i repo):
+
+- **CLI + MCP** — `anomalia connections list|catalog|connect|revoke` e i cinque tool MCP.
+- **App** — client REST Composio, catalogo + registro, riconciliazione delle righe, agente
+  (`list_integrations_tools` / `call_integrations_tools` su toolkit e tool slug), ingest del
+  corpus via proxy, endpoint `/api/v1/brands/:slug/connections*`, migrazione `0190`.
+
+Da fare al deploy:
+
+1. `COMPOSIO_API_KEY` in ambiente (senza, i connettori rispondono 503 e il resto dell'app gira).
+2. Applicare la migrazione `0190_composio_connections.sql`.
+3. Rivedere `app_integration_registry`: quali toolkit sono visibili ai brand e con che `kind`.
+4. Avvisare i brand con connettori attivi: devono ricollegare (una volta).
+5. Opzionale — custom auth config in Composio per i toolkit dove vogliamo il nostro consent
+   screen (tipicamente Google Drive e Gmail).
 
 ## 8. Uso (CLI)
 

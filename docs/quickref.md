@@ -65,7 +65,7 @@ anomalia studio <slug> sync-history          # Sync social
 anomalia seo <slug>                          # Grade, iniziative, audit
 anomalia seo <slug> run|plan|more            # Audit / piano / altre iniziative
 anomalia seo <slug> asset|article --id <id>  # Genera da un'iniziativa
-anomalia geo <slug>                          # Share of voice, citazioni
+anomalia geo <slug>                          # Citabilità (5 leve), vincolo vincolante, citazioni
 anomalia geo <slug> run|fix                  # Audit / genera fix
 anomalia keywords <slug> [refresh]           # Keyword strategy
 anomalia web <slug> [--status draft]         # Articoli blog

@@ -73,8 +73,8 @@ Editing a SCHEDULED post re-syncs it to Zernio automatically, so what goes out i
 - `anomalia seo <slug> article --id <initiativeId>` — Turn an initiative into a full article draft
 
 ### GEO (AI visibility)
-- `anomalia geo <slug>` — Share of voice, per-prompt citations, ready fixes
-- `anomalia geo <slug> run` — Run the citation audit
+- `anomalia geo <slug>` — Citability across five weighted levers, the binding constraint, anti-citation signals, per-prompt citations, ready fixes. Read `citability`, not `tech_score`: the technical audit is 10% of whether a model will cite you. "Named in the answer" and "own domain cited as a source" are two different numbers with two different fixes.
+- `anomalia geo <slug> run` — Run the citation audit. Every question is asked several times per engine because citation is non-deterministic — do not re-run it to check a result.
 - `anomalia geo <slug> fix` — Generate fix artifacts for the gaps found
 
 ### Keywords
@@ -90,7 +90,7 @@ Editing a SCHEDULED post re-syncs it to Zernio automatically, so what goes out i
 Note: `--id` accepts the short prefix printed in the tables.
 
 ### Ads
-- `anomalia ads <slug>` — Ad campaigns, spend, metrics + boost candidates
+- `anomalia ads <slug>` — Ad campaigns, spend, metrics, boost candidates, and a per-campaign FATIGUE DIAGNOSIS: why the numbers moved (creative fatigue, exhausted audience, auction pressure, post-click, message-match, broken tracking, bad concept, learning reset). These call for opposite actions — read it before proposing new creative, and when it says tracking failure, say that first.
 - `anomalia ads <slug> --sync` — Sync ad accounts + metrics
 - `anomalia ads <slug> --propose` — Propose boosts from top organic posts
 - `anomalia ads <slug> --remix` — Remix competitor/trending ads into ranked creative briefs

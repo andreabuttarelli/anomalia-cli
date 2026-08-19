@@ -33,7 +33,8 @@ anomalia weekly-plan <slug> plan --week 0
 anomalia weekly-plan <slug> produce --week 0
 anomalia studio <slug> add-note --text "..."
 anomalia seo <slug>
-anomalia geo <slug>
+anomalia geo <slug>          # citabilità (5 leve), vincolo vincolante, segnali anti-citazione
+anomalia ads <slug>          # campagne + diagnosi: perché i numeri si sono mossi
 anomalia web <slug> generate --topic "..."
 anomalia ai <slug> --message "..." --pipe
 ```

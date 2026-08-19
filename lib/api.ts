@@ -178,9 +178,66 @@ export type SeoInitiative = {
 
 export type GeoData = {
   audit: { tech_score: number | null; share_of_voice: number | null; citations: GeoCitation[] | null; created_at: string } | null;
+  /**
+   * The five weighted levers. This is the number that answers "will a model cite us"; `tech_score`
+   * answers the much narrower "can a crawler reach us", and is 10% of this one. `null` on audits
+   * taken before the levers existed, or when the homepage could not be read.
+   */
+  citability: GeoCitability | null;
   aiOverview: Record<string, unknown> | null;
   trend: { techScore: number | null; shareOfVoice: number | null; at: string }[];
   artifacts: { id: string; kind: string; title: string; format: string | null; target_path: string | null }[];
+};
+
+export type GeoLever = {
+  id: string;
+  label: string;
+  weight: number;
+  /** 0..1, or null when the lever could not be measured — which costs coverage, never score. */
+  value: number | null;
+  note: string;
+};
+
+export type GeoCitability = {
+  /** 0-100 over the INSPECTED weight, or null when coverage was too thin to grade at all. */
+  score: number | null;
+  /** Share of applicable weight actually inspected, 0-100. Always read next to `score`. */
+  coverage: number;
+  tier: 'full' | 'provisional' | 'ungraded';
+  levers: GeoLever[];
+  /** The lever limiting citation. Fixing the others moves nothing until this one is addressed. */
+  bindingConstraint: { id: string; label: string; why: string } | null;
+  /** Disqualifiers: removing one is usually cheaper than adding anything. */
+  antiSignals: { id: string; note: string; fix: string }[];
+  /** Ranked fixes — evidence density before keyword tactics. */
+  priorities: string[];
+  /** What the audit could not determine. */
+  gaps: string;
+  /** No engine publishes its citation criteria. Print this, every time. */
+  disclaimer: string;
+  /** Share of answers that cited the brand's own DOMAIN — a different event from being named. */
+  domainCitedShare: number;
+  /** How many times each question was asked. Citation is non-deterministic; n=1 is noise. */
+  samplesPerPrompt: number;
+};
+
+export type AdFatigue = {
+  id:
+    | 'tracking_failure'
+    | 'creative_fatigue'
+    | 'audience_exhaustion'
+    | 'auction_pressure'
+    | 'post_click'
+    | 'message_match'
+    | 'bad_concept'
+    | 'learning_reset'
+    | 'insufficient_data'
+    | 'healthy';
+  label: string;
+  /** What to do — and, as often, what NOT to do. */
+  action: string;
+  /** What would change this read. Every diagnosis states it; none is certain. */
+  wouldChangeMyMind: string;
 };
 
 export type GeoCitation = { prompt?: string; surface?: string; cited?: boolean; mentioned?: boolean; competitors?: string[] };
@@ -436,7 +493,15 @@ export const api = {
   getGeo: (t: string, slug: string) => get<GeoData>(`/api/v1/brands/${slug}/geo`, t),
 
   geoAction: (t: string, slug: string, action: 'audit' | 'fix') =>
-    post<{ ok?: boolean; techScore?: number | null; shareOfVoice?: number; generated?: number }>(`/api/v1/brands/${slug}/geo`, t, { action }),
+    post<{
+      ok?: boolean;
+      techScore?: number | null;
+      shareOfVoice?: number;
+      domainCitedShare?: number;
+      citabilityScore?: number | null;
+      bindingConstraint?: string | null;
+      generated?: number;
+    }>(`/api/v1/brands/${slug}/geo`, t, { action }),
 
   // ── Keywords ──────────────────────────────────────────────────────────
 
@@ -467,6 +532,13 @@ export const api = {
           goal: string;
           budget_amount: number;
           budget_type: string;
+          /**
+           * WHY the numbers moved, not just that they moved. Creative fatigue, an exhausted
+           * audience, auction pressure, a post-click problem and broken tracking are five different
+           * things calling for opposite actions — and prescribing new creative for the wrong one
+           * burns a production cycle. `null` until there is enough history to read.
+           */
+          fatigue: AdFatigue | null;
         }[];
         totals: { spend: number; impressions: number; clicks: number; active: number; proposed: number };
       };

@@ -61,6 +61,13 @@ anomalia studio <slug> add-competitor --name "..."
 anomalia studio <slug> research              # Ricerca AI
 anomalia studio <slug> sync-history          # Sync social
 
+# Connections (app esterne)
+anomalia connections <slug>                  # App collegate
+anomalia connections <slug> catalog          # App collegabili
+anomalia connections <slug> catalog --query hubspot
+anomalia connections <slug> connect HUBSPOT  # Collega (apre il browser)
+anomalia connections <slug> revoke <id>      # Revoca
+
 # Web / SEO / GEO
 anomalia seo <slug>                          # Grade, iniziative, audit
 anomalia seo <slug> run|plan|more            # Audit / piano / altre iniziative

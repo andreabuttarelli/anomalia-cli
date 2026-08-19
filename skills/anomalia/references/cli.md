@@ -35,6 +35,7 @@ anomalia studio <slug> add-note --text "..."
 anomalia seo <slug>
 anomalia geo <slug>
 anomalia web <slug> generate --topic "..."
+anomalia connections <slug> connect HUBSPOT
 anomalia ai <slug> --message "..." --pipe
 ```
 

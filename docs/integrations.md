@@ -155,10 +155,12 @@ Regole del contratto:
 | `logId` di ogni chiamata esterna salvato come evento | `collectLogIds` → `effect.recorded` | audit di cosa è stato pubblicato e con quale chiamata |
 | Skill del vendor vendorizzata con hash | `.agents/skills/composio/` + `skills-lock.json` | l'agente integra il vendor seguendo la sua doc corrente, versionata |
 
-Già in `021-app` dopo questa migrazione: contratto e composite (nella forma di §4), sessione
-filtrata sui toolkit connessi, riga di prompt con le app collegate, redaction, riconciliazione.
-Ancora aperti: **emulatore deterministico** per i test offline, **cache TTL del catalogo** (oggi
-ogni apertura della pagina interroga Composio) e **audit dei `logId`** di ogni chiamata esterna.
+Già in `021-app`: contratto e moduli (nella forma di §4), tool filtrati sui toolkit connessi,
+riga di prompt con le app collegate, redaction, riconciliazione DB↔provider, e la **cache TTL del
+catalogo** con stale-while-revalidate (il catalogo Composio è 1000+ toolkit dietro un endpoint
+paginato: senza cache ogni apertura della pagina costava una decina di chiamate).
+Ancora aperti: **emulatore deterministico** per i test offline e **audit dei `logId`** di ogni
+chiamata esterna.
 
 ## 7. Stato
 

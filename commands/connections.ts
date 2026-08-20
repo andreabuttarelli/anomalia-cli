@@ -94,12 +94,16 @@ async function listConnections(token: string, slug: string) {
   console.log();
 }
 
+const CATALOG_ROWS = 30;
+
 async function showCatalog(token: string, slug: string, query?: string) {
   const { apps } = await api.connectionCatalog(token, slug, query);
   // The API already filters when `query` is set; re-filtering client-side keeps the
   // output correct against a backend that ignores the parameter.
-  const visible = query ? filterCatalog(apps, query) : apps;
-  section(`Catalogo app (${visible.length}${visible.length !== apps.length ? ` di ${apps.length}` : ''})`);
+  const matching = query ? filterCatalog(apps, query) : apps;
+  // Composio carries 1000+ toolkits: a bare `catalog` must not print a thousand-row table.
+  const visible = matching.slice(0, CATALOG_ROWS);
+  section(`Catalogo app (${matching.length}${matching.length !== apps.length ? ` di ${apps.length}` : ''})`);
   if (!visible.length) {
     info(query ? `Nessuna app per "${query}".` : 'Catalogo vuoto.');
     return;
@@ -113,6 +117,11 @@ async function showCatalog(token: string, slug: string, query?: string) {
       app.connected ? c.green('✓ collegata') : c.dim('—'),
     ]),
   );
+  if (matching.length > visible.length) {
+    console.log(
+      `\n  ${c.dim(`Mostrate ${visible.length} di ${matching.length}. Restringi con --query <testo>.`)}`,
+    );
+  }
   console.log(`\n  ${c.dim(`Collega con: anomalia connections ${slug} connect <slug>`)}\n`);
 }
 

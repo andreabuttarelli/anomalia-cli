@@ -84,6 +84,21 @@ anomalia ai my-brand --message "Aggiungi Marco come CEO del brand"
 anomalia ai my-brand --message "Aggiungi una nota: il nostro pubblico preferisce video brevi"
 ```
 
+### Notifiche
+
+L'AI può avvisarti **fuori dalla chat** quando un lavoro finisce o serve una tua decisione: manda
+un'email (a tutte le persone invitate nel progetto) e insieme una push notification sui dispositivi
+che l'hanno attivata. È l'AI a scrivere oggetto, testo dell'email e riga della notifica.
+
+```bash
+# Utile soprattutto per lavori lunghi lanciati da script o cron
+anomalia ai my-brand --message "Produci i post della settimana 3 e avvisami via email quando hai finito"
+```
+
+Se nessuno ha attivato le push sul progetto parte solo l'email, e l'AI te lo dice invece di
+promettere una notifica mai arrivata. Il numero di notifiche è limitato (poche per turno e per ora):
+serve per gli avvenimenti veri, non per ogni passaggio.
+
 ## Pipe mode (per agenti AI)
 
 Quando usi la CLI da un agente AI o in un pipeline, usa `--pipe` per output raw:

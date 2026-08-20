@@ -124,6 +124,16 @@ program
   });
 
 program
+  .command('connections <slug> [action] [target]')
+  .description('App collegate: list, catalog, connect <app>, revoke <id>')
+  .option('--query <text>', 'Filtra il catalogo per nome o slug')
+  .option('--timeout <seconds>', 'Attesa massima per l\'autorizzazione OAuth (default 120)', parseInt)
+  .action(async (slug: string, action: string | undefined, target: string | undefined, opts: { query?: string; timeout?: number }) => {
+    const { cmdConnections } = await import('./commands/connections.ts');
+    await cmdConnections(slug, action ?? 'list', target, opts);
+  });
+
+program
   .command('people <slug> [action]')
   .description('Persone: list, add (--name --gender …), remove (--id)')
   .option('--name <text>', 'Nome persona')

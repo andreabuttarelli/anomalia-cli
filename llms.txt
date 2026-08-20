@@ -113,6 +113,14 @@ Note: `--id` accepts the short prefix printed in the tables.
 - `echo "..." | anomalia ai <slug>` — Pipe mode for AI agents
 - `anomalia ai <slug> --message "..." --pipe` — Raw output (no formatting)
 
+### Connections (external apps)
+- `anomalia connections <slug>` — Apps connected to the brand (social + external tools)
+- `anomalia connections <slug> catalog [--query "..."]` — Apps available to connect
+- `anomalia connections <slug> connect <APP>` — Connect an app (opens the browser for OAuth)
+- `anomalia connections <slug> revoke <id>` — Revoke a connection (id prefix accepted)
+
+Requires the backend `/api/v1/brands/:slug/connections*` endpoints. Design and contract: `docs/integrations.md`.
+
 ### System
 - `anomalia update` — Update CLI to latest version
 - `anomalia upgrade <slug>` — Open plan upgrade page

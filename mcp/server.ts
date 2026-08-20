@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerAuthTools } from './tools/auth.ts';
 import { registerBrandTools } from './tools/brand-content.ts';
+import { registerConnectionTools } from './tools/connections.ts';
 import { registerPlanTools } from './tools/plan.ts';
 import { registerStudioTools } from './tools/studio.ts';
 import { registerWebTools } from './tools/web.ts';
@@ -26,6 +27,7 @@ export function createAnomaliaMcpServer(): McpServer {
 
   registerAuthTools(server);
   registerBrandTools(server);
+  registerConnectionTools(server);
   registerPlanTools(server);
   registerStudioTools(server);
   registerWebTools(server);

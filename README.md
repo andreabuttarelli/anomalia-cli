@@ -98,6 +98,7 @@ prefixes error instead of guessing.
 | Web | `seo`, `geo`, `keywords`, `web` |
 | Ads | `ads` — campaigns, spend, boost proposals, remix, duplicate/delete (`--sync`, `--propose`, `--remix`, `--create`, `--approve`, `--pause`, `--resume`, `--duplicate`, `--delete`, `--reject`, `--ad` per singola creatività) |
 | Insight | `dashboard`, `status`, `analytics` |
+| Connections | `connections` — collega app esterne al brand (`catalog`, `connect`, `revoke`), vedi [`docs/integrations.md`](docs/integrations.md) |
 | AI | `ai --message "..."` — natural language, full read/write access |
 
 Full command dump: [`llms.txt`](llms.txt) · more docs: [`docs/`](docs/)

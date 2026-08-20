@@ -55,6 +55,19 @@ All tools take a brand `slug` when brand-scoped. Ids accept short unambiguous pr
 | `add_competitor` / `delete_competitor` / `research_competitors` | `anomalia studio <slug> add-competitor\|…\|research` |
 | `sync_history` | `anomalia studio <slug> sync-history` |
 
+## Connections (external apps)
+
+| MCP | CLI |
+|-----|-----|
+| `list_connections` | `anomalia connections <slug>` |
+| `connection_catalog` | `anomalia connections <slug> catalog [--query …]` |
+| `connect_app` | `anomalia connections <slug> connect <APP>` |
+| `complete_connection` | (polled automatically by the CLI) |
+| `revoke_connection` | `anomalia connections <slug> revoke <id>` |
+
+`connect_app` returns an `authorization_url` the user opens themselves; poll
+`complete_connection` until the status is `connected` or `error`.
+
 ## SEO / GEO / blog / ads / AI
 
 | MCP | CLI |

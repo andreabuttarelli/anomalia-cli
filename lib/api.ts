@@ -243,6 +243,32 @@ export type PostState = {
   status: string; text_only: boolean;
 };
 
+// ── Connections (app esterne) ───────────────────────────────────────────
+// Servite da /api/v1/brands/:slug/connections* — il contratto e il design del
+// layer connector (Nango / Composio) sono in docs/integrations.md.
+
+export type ConnectionStatus = 'pending' | 'connected' | 'revoked' | 'error';
+
+export type Connection = {
+  id: string;
+  provider: string;
+  display_name: string;
+  status: ConnectionStatus;
+  scopes?: string[] | null;
+  connected_at?: string | null;
+  created_at?: string | null;
+};
+
+export type ConnectionCatalogItem = {
+  provider: string;
+  name: string;
+  logo?: string | null;
+  connected: boolean;
+  /** L'auth è gestita dal provider (nessuna OAuth app da registrare lato Anomalia). */
+  managed_auth?: boolean;
+  category?: string | null;
+};
+
 // ── API methods ─────────────────────────────────────────────────────────
 
 export const api = {
@@ -499,6 +525,39 @@ export const api = {
   /** Last remix briefs for the brand (no re-run). */
   getAdsRemix: (t: string, slug: string) =>
     get<AdsRemixResult>(`/api/v1/brands/${slug}/ads/remix`, t),
+
+  // ── Connections ───────────────────────────────────────────────────────
+
+  /** App collegate al brand (social + tool esterni). */
+  listConnections: (t: string, slug: string) =>
+    get<{ connections: Connection[] }>(`/api/v1/brands/${slug}/connections`, t),
+
+  /** Catalogo delle app collegabili, con flag `connected` già risolto lato API. */
+  connectionCatalog: (t: string, slug: string, query?: string) =>
+    get<{ apps: ConnectionCatalogItem[] }>(
+      `/api/v1/brands/${slug}/connections/catalog${query ? `?query=${encodeURIComponent(query)}` : ''}`,
+      t,
+    ),
+
+  /** Avvia il collegamento: `authorization_url` è null per le app senza OAuth. */
+  beginConnection: (t: string, slug: string, provider: string, displayName?: string) =>
+    post<{ connection_id: string; authorization_url: string | null }>(
+      `/api/v1/brands/${slug}/connections`,
+      t,
+      { provider, display_name: displayName },
+    ),
+
+  /** Verifica lo stato reale della connessione presso il provider (polling dopo l'OAuth). */
+  completeConnection: (t: string, slug: string, connectionId: string) =>
+    post<{ connection: Connection }>(
+      `/api/v1/brands/${slug}/connections/${connectionId}/complete`,
+      t,
+    ),
+
+  revokeConnection: (t: string, slug: string, connectionId: string) =>
+    request<{ ok: boolean }>(`/api/v1/brands/${slug}/connections/${connectionId}`, t, {
+      method: 'DELETE',
+    }),
 
   // ── Chat ──────────────────────────────────────────────────────────────
 
